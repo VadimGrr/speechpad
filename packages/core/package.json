@@ -1,0 +1,24 @@
+{
+  "name": "@speechpad/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Speech recognition engine core and public SDK",
+  "main": "./dist/speechpad.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./dist/speechpad.js": "./dist/speechpad.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "vitest run --root ../.. packages/core/test"
+  }
+}
