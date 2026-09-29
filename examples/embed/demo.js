@@ -10,12 +10,30 @@
   var clearButton = document.getElementById('clear');
   var langSelect = document.getElementById('lang');
 
+  var NOTE_KEY = 'speechpad.example.note.v1';
+
   var STATE_LABELS = {
     idle: 'Готов',
     listening: 'Слушаю',
     paused: 'Пауза',
     error: 'Ошибка',
   };
+
+  function loadNote() {
+    try {
+      return window.localStorage.getItem(NOTE_KEY) || '';
+    } catch (error) {
+      return '';
+    }
+  }
+
+  function saveNote(text) {
+    try {
+      window.localStorage.setItem(NOTE_KEY, text);
+    } catch (error) {
+      showMessage('Браузер запретил сохранение текста: ' + error.message);
+    }
+  }
 
   if (!window.Speechpad || typeof window.Speechpad.SpeechpadEngine !== 'function') {
     showMessage('Не загрузился speechpad.js — проверьте путь к скрипту.');
@@ -38,16 +56,24 @@
     return;
   }
 
+  var restored = loadNote();
+  finalEl.textContent = restored;
+  if (restored) {
+    engine.syncTranscript(restored);
+    setText('m-finals', '—');
+  }
+
   engine.on('partial', function (text) {
     ghostEl.textContent = text ? ' ' + text : '';
-    if (engine.metrics.lastInterimAfterRestartMs !== null) {
-      setText('m-first', Math.round(engine.metrics.firstInterimAfterStartMs ?? 0) + ' мс');
+    if (engine.metrics.firstInterimAfterStartMs !== null) {
+      setText('m-first', Math.round(engine.metrics.firstInterimAfterStartMs) + ' мс');
     }
   });
 
   engine.on('final', function (text) {
     ghostEl.textContent = '';
     finalEl.textContent = join(finalEl.textContent, text);
+    saveNote(finalEl.textContent);
     setText('m-finals', String(engine.metrics.finals));
   });
 
@@ -94,6 +120,7 @@
     engine.clear();
     finalEl.textContent = '';
     ghostEl.textContent = '';
+    saveNote('');
     setText('m-finals', '0');
     setText('m-dupes', '0');
   });
