@@ -210,10 +210,16 @@ function boot(): void {
   void extension.probe().then((state) => {
     extensionReady = state.available && state.authorized;
     insertRoute.hidden = !state.available;
-    if (state.available && !state.authorized) {
-      insertRoute.value = 'agent';
-      settings.insertRoute = 'agent';
+    if (!state.available) return;
+    insertButton.disabled = false;
+    insertButton.setAttribute('aria-pressed', String(settings.autoInsert));
+    if (state.authorized) {
+      insertButton.title = 'Вставлять финальные фразы автоматически';
+      return;
     }
+    insertRoute.value = 'agent';
+    settings.insertRoute = 'agent';
+    insertButton.title = 'Расширение не авторизовано: откройте страницу Speechpad заново';
   });
 
   function updateStats(text: string): void {
