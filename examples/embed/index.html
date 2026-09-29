@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Заметки — вставка голоса</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <main class="page">
+      <h1>Заметки</h1>
+      <p class="lead">
+        Обычная страница стороннего проекта: никакого знания о внутренностях Speechpad,
+        только подключённый скрипт и четыре обработчика.
+      </p>
+
+      <div class="toolbar">
+        <button id="start" class="primary" type="button">Диктовать</button>
+        <button id="pause" type="button">Пауза</button>
+        <button id="clear" type="button">Очистить</button>
+        <select id="lang">
+          <option value="ru-RU">Русский</option>
+          <option value="en-US">English</option>
+          <option value="de-DE">Deutsch</option>
+        </select>
+        <span id="state" class="state" data-state="idle">Готов</span>
+      </div>
+
+      <div id="note" class="note" role="textbox" aria-multiline="true" aria-label="Текст заметки">
+        <span id="final" class="final"></span><span id="ghost" class="ghost"></span>
+      </div>
+
+      <p id="message" class="message" hidden></p>
+
+      <dl class="metrics">
+        <div><dt>Финалов</dt><dd id="m-finals">0</dd></div>
+        <div><dt>Повторов отброшено</dt><dd id="m-dupes">0</dd></div>
+        <div><dt>Перезапусков</dt><dd id="m-restarts">0</dd></div>
+        <div><dt>Первый интерм</dt><dd id="m-first">—</dd></div>
+        <div><dt>Интерм между фразами</dt><dd id="m-interval">—</dd></div>
+        <div><dt>Тишина</dt><dd id="m-silence">—</dd></div>
+      </dl>
+
+      <p class="hint">
+        Кнопка браузера разрешает микрофон только здесь. Агент и главное окно
+        Speechpad для этой страницы не нужны.
+      </p>
+    </main>
+
+    <script src="/speechpad.js"></script>
+    <script src="demo.js"></script>
+  </body>
+</html>

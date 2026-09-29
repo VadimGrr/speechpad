@@ -75,6 +75,12 @@ speechpad/
 `npm run build -w @speechpad/extension` даёт загружаемую папку `dist`.
 Устройство, протокол и ограничения — [docs/EXTENSION.md](EXTENSION.md).
 
+Фаза P6 закрыта по коду: `packages/core/dist/speechpad.js` собирается, таблица
+опций сверена с `DEFAULT_OPTIONS`, добавлен посторонний пример
+`examples/embed` с командой `npm run example:embed` (страница отдаётся с
+`http://127.0.0.1:5174/`, агент и главное окно не нужны). Ручная проверка приёма
+микрофона в примере — пункт 7 в [docs/ACCEPTANCE.md](ACCEPTANCE.md).
+
 ## 5. Риски
 
 | Риск | Митигация |

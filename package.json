@@ -16,7 +16,8 @@
     "dev:web": "npm run dev -w @speechpad/web",
     "agent": "dotnet run --project apps/agent/Speechpad.Agent.csproj",
     "agent:build": "dotnet build apps/agent/Speechpad.Agent.csproj -c Release",
-    "test:agent": "dotnet test apps/agent/tests/Speechpad.Agent.Tests.csproj"
+    "test:agent": "dotnet test apps/agent/tests/Speechpad.Agent.Tests.csproj",
+    "example:embed": "node examples/embed/server.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
