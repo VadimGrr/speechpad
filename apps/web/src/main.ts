@@ -1,6 +1,7 @@
 import { SpeechpadEngine } from '@speechpad/core';
 import type { Metrics, PublicState } from '@speechpad/core';
 import './styles.css';
+import { AgentClient, readInjectedHandshake } from './agent';
 import { SyncBus, type StatePayload } from './channel';
 import { environmentMessage, inspectEnvironment } from './env';
 import {
@@ -12,6 +13,7 @@ import {
   type Settings,
 } from './storage';
 import { countChars, countWords, formatDuration } from './text';
+import { renderAgentStatus } from './ui/agent-status';
 import { renderMetrics } from './ui/metrics';
 import { renderControls, renderStatus, type Controls } from './ui/status';
 import { TranscriptView } from './ui/transcript';
@@ -60,6 +62,8 @@ function boot(): void {
     copy: el<HTMLButtonElement>('copy'),
   };
   const compactButton = el<HTMLButtonElement>('compact');
+  const insertButton = el<HTMLButtonElement>('insert');
+  const agentStatus = el<HTMLSpanElement>('agent-status');
 
   const bus = SyncBus.open();
   let compact: Window | null = null;
@@ -151,6 +155,42 @@ function boot(): void {
     envBanner.hidden = true;
   });
 
+  const handshake = readInjectedHandshake();
+  let agent: AgentClient | null = null;
+
+  if (handshake) {
+    agent = new AgentClient({ handshake });
+    insertButton.disabled = false;
+    insertButton.setAttribute('aria-pressed', String(settings.autoInsert));
+    renderAgentStatus(agentStatus, 'connecting', handshake.insertScheme);
+    agent.onStatus((status, detail) => {
+      renderAgentStatus(agentStatus, status, handshake.insertScheme);
+      if (status === 'error' && detail) showToast(detail);
+    });
+    agent.onError((message) => showToast(message));
+    agent.onHotkey((action) => {
+      if (action === 'toggle') {
+        engine.toggle();
+        syncUi();
+        return;
+      }
+      if (action === 'clear') {
+        clearAll();
+        return;
+      }
+      showToast('Окно закреплено поверх остальных');
+    });
+    agent.connect();
+  } else {
+    insertButton.title = 'Автовставка работает через нативного агента';
+  }
+
+  insertButton.addEventListener('click', () => {
+    settings.autoInsert = !settings.autoInsert;
+    saveSettings(settings);
+    insertButton.setAttribute('aria-pressed', String(settings.autoInsert));
+  });
+
   function updateStats(text: string): void {
     statsEl.textContent = `${countWords(text)} слов · ${countChars(text)} символов`;
   }
@@ -223,6 +263,11 @@ function boot(): void {
     syncUi();
     bus?.send({ kind: 'final', text });
     bus?.send({ kind: 'state', ...statePayload() });
+    if (agent && settings.autoInsert) {
+      void agent.insert(text).then((outcome) => {
+        if (!outcome.ok) showToast('Агент не вставил текст в активное окно');
+      });
+    }
   });
   engine.on('state', (next) => {
     state = next;
@@ -313,6 +358,7 @@ function boot(): void {
     saveTranscript(view.text);
     bus?.send({ kind: 'bye' });
     bus?.close();
+    agent?.close();
   });
 
   window.setInterval(() => {

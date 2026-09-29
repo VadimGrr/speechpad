@@ -6,6 +6,8 @@ coverage/
 
 apps/agent/bin/
 apps/agent/obj/
+apps/agent/tests/bin/
+apps/agent/tests/obj/
 apps/web/dist/
 
 .DS_Store

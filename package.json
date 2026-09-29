@@ -14,7 +14,9 @@
     "test": "npm run test --workspaces --if-present",
     "dev": "npm run dev -w @speechpad/web",
     "dev:web": "npm run dev -w @speechpad/web",
-    "agent:build": "dotnet build apps/agent/Speechpad.Agent.csproj -c Release"
+    "agent": "dotnet run --project apps/agent/Speechpad.Agent.csproj",
+    "agent:build": "dotnet build apps/agent/Speechpad.Agent.csproj -c Release",
+    "test:agent": "dotnet test apps/agent/tests/Speechpad.Agent.Tests.csproj"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

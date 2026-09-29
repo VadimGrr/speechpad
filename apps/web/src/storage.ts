@@ -4,12 +4,14 @@ export interface Settings {
   lang: string;
   theme: Theme;
   showMetrics: boolean;
+  autoInsert: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   lang: 'ru-RU',
   theme: 'dark',
   showMetrics: false,
+  autoInsert: true,
 };
 
 const SETTINGS_KEY = 'speechpad.settings.v1';
@@ -40,6 +42,7 @@ export function loadSettings(): Settings {
       lang: typeof parsed.lang === 'string' ? parsed.lang : DEFAULT_SETTINGS.lang,
       theme: parsed.theme === 'light' ? 'light' : 'dark',
       showMetrics: parsed.showMetrics === true,
+      autoInsert: parsed.autoInsert !== false,
     };
   } catch {
     return { ...DEFAULT_SETTINGS };

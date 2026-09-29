@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { AGENT_STATUS_LABELS, renderAgentStatus, SCHEME_LABELS } from '../src/ui/agent-status';
 import { buildRows, renderMetrics } from '../src/ui/metrics';
 import { renderControls, renderStatus, TOGGLE_LABELS } from '../src/ui/status';
 import { environmentMessage, inspectEnvironment } from '../src/env';
@@ -112,5 +113,27 @@ describe('environment checks', () => {
   it('stays silent on a normal Chrome profile', () => {
     const info = inspectEnvironment(true, null, 'Mozilla/5.0 Chrome/120 Safari/537.36');
     expect(environmentMessage(info)).toBeNull();
+  });
+});
+
+describe('agent status chip', () => {
+  it('names every connection state', () => {
+    expect(Object.keys(AGENT_STATUS_LABELS)).toEqual(['offline', 'connecting', 'online', 'error']);
+    expect(AGENT_STATUS_LABELS['offline']).toBe('Агент не найден');
+    expect(AGENT_STATUS_LABELS['error']).toBe('Агент недоступен');
+  });
+
+  it('marks the state as a data attribute', () => {
+    const root = document.createElement('span');
+    renderAgentStatus(root, 'connecting');
+    expect(root.dataset['status']).toBe('connecting');
+    expect(root.textContent).toBe('Подключение к агенту');
+  });
+
+  it('shows the insertion scheme once the agent is online', () => {
+    const root = document.createElement('span');
+    renderAgentStatus(root, 'online', 'unicode');
+    expect(root.textContent).toBe('Агент в сети · юникод-ввод');
+    expect(SCHEME_LABELS['clipboard']).toBe('буфер обмена');
   });
 });

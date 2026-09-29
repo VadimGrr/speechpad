@@ -145,6 +145,30 @@ body {
   cursor: not-allowed;
 }
 
+.control[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.agent {
+  color: var(--muted);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.agent[data-status='online'] {
+  color: var(--good);
+}
+
+.agent[data-status='connecting'] {
+  color: var(--warn);
+}
+
+.agent[data-status='error'] {
+  color: var(--bad);
+}
+
 .primary {
   background: var(--accent);
   color: #fff;

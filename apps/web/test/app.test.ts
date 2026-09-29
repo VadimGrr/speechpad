@@ -46,6 +46,14 @@ describe('main window bootstrap', () => {
     expect(compact.title).toContain('BroadcastChannel');
   });
 
+  it('disables auto insert when the native agent is not present', () => {
+    const insert = byId<HTMLButtonElement>('insert');
+    expect(insert.disabled).toBe(true);
+    expect(insert.title).toContain('агента');
+    expect(byId('agent-status').dataset['status']).toBe('offline');
+    expect(byId('agent-status').textContent).toBe('Агент не найден');
+  });
+
   it('offers a list of recognition languages', () => {
     const select = byId<HTMLSelectElement>('lang');
     expect([...select.options].map((option) => option.value)).toEqual([
