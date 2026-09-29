@@ -9,10 +9,11 @@
     "apps/*"
   ],
   "scripts": {
-    "build": "npm run build -w @speechpad/core",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "dev": "npm run dev -w @speechpad/web",
+    "dev:web": "npm run dev -w @speechpad/web",
     "agent:build": "dotnet build apps/agent/Speechpad.Agent.csproj -c Release"
   },
   "devDependencies": {

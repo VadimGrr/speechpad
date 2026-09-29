@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Speechpad — голосовой ввод</title>
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">Speechpad</div>
+        <div id="status" class="status" data-state="idle">
+          <span class="dot"></span>
+          <span class="label">Готов</span>
+          <span id="session-timer" class="timer"></span>
+        </div>
+        <div class="grow"></div>
+        <select id="lang" class="control" title="Язык распознавания"></select>
+        <button id="theme" class="control" type="button">Тёмная тема</button>
+      </header>
+
+      <div id="env-banner" class="banner" hidden>
+        <span id="env-text"></span>
+        <button id="env-dismiss" class="banner-close" type="button">Скрыть</button>
+      </div>
+
+      <main class="editor">
+        <div
+          id="transcript"
+          class="transcript"
+          contenteditable="true"
+          tabindex="0"
+          spellcheck="false"
+          role="textbox"
+          aria-multiline="true"
+          aria-label="Стенограмма"
+          data-placeholder="Нажмите «Слушать» и говорите"
+        ></div>
+      </main>
+
+      <section id="metrics" class="metrics" hidden aria-label="Метрики"></section>
+
+      <footer class="dock">
+        <button id="toggle" class="primary" type="button">Слушать</button>
+        <button id="clear" class="control" type="button">Очистить</button>
+        <button id="copy" class="control" type="button">Копировать</button>
+        <div class="grow"></div>
+        <span id="stats" class="stats">0 слов · 0 символов</span>
+        <button
+          id="metrics-toggle"
+          class="control"
+          type="button"
+          aria-pressed="false"
+        >
+          Метрики
+        </button>
+      </footer>
+    </div>
+
+    <div id="toast" class="toast" hidden role="status"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -9,9 +9,10 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
+      "import": "./dist/speechpad.esm.js",
+      "default": "./dist/speechpad.esm.js"
     },
+    "./src": "./src/index.ts",
     "./dist/speechpad.js": "./dist/speechpad.js"
   },
   "files": [
@@ -19,6 +20,7 @@
   ],
   "scripts": {
     "build": "node build.mjs",
-    "test": "vitest run --root ../.. packages/core/test"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
   }
 }
