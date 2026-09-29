@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@speechpad/core': resolve(here, '../../packages/core/src/index.ts'),
+      '@speechpad/extension-protocol': resolve(here, '../extension/src/protocol.ts'),
     },
   },
   test: {

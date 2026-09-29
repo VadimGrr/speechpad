@@ -48,6 +48,10 @@
         <button id="insert" class="control" type="button" aria-pressed="false" disabled>
           Автовставка
         </button>
+        <select id="insert-route" class="control" title="Куда вставлять распознанный текст" hidden>
+          <option value="agent">В активное окно Windows</option>
+          <option value="tab">В поле вкладки браузера</option>
+        </select>
         <span id="agent-status" class="agent" data-status="offline">Агент не найден</span>
         <div class="grow"></div>
         <span id="stats" class="stats">0 слов · 0 символов</span>

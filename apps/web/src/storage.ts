@@ -1,10 +1,12 @@
 export type Theme = 'dark' | 'light';
+export type InsertRoute = 'agent' | 'tab';
 
 export interface Settings {
   lang: string;
   theme: Theme;
   showMetrics: boolean;
   autoInsert: boolean;
+  insertRoute: InsertRoute;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -12,6 +14,7 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'dark',
   showMetrics: false,
   autoInsert: true,
+  insertRoute: 'agent',
 };
 
 const SETTINGS_KEY = 'speechpad.settings.v1';
@@ -43,6 +46,7 @@ export function loadSettings(): Settings {
       theme: parsed.theme === 'light' ? 'light' : 'dark',
       showMetrics: parsed.showMetrics === true,
       autoInsert: parsed.autoInsert !== false,
+      insertRoute: parsed.insertRoute === 'tab' ? 'tab' : 'agent',
     };
   } catch {
     return { ...DEFAULT_SETTINGS };

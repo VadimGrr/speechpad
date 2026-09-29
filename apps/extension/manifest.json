@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "Speechpad — вставка в поля",
+  "version": "0.1.0",
+  "description": "Вставляет распознанный текст Speechpad в поле ввода любой вкладки, включая фоновые и защищённые.",
+  "minimum_chrome_version": "111",
+  "permissions": ["activeTab", "scripting", "tabs"],
+  "host_permissions": ["http://127.0.0.1/*", "http://localhost/*"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://127.0.0.1/*", "http://localhost/*"],
+      "js": ["bridge.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["inserter.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ]
+}

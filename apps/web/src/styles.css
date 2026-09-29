@@ -151,6 +151,15 @@ body {
   color: var(--text);
 }
 
+select.control {
+  max-width: 210px;
+  cursor: pointer;
+}
+
+select.control[hidden] {
+  display: none;
+}
+
 .agent {
   color: var(--muted);
   font-size: 12.5px;

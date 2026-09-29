@@ -9,6 +9,7 @@ apps/agent/obj/
 apps/agent/tests/bin/
 apps/agent/tests/obj/
 apps/web/dist/
+apps/extension/dist/
 
 .DS_Store
 Thumbs.db

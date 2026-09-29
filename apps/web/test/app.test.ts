@@ -94,4 +94,10 @@ describe('main window bootstrap', () => {
     expect(byId('stats').textContent).toBe('3 слов · 20 символов');
     expect(byId<HTMLButtonElement>('clear').disabled).toBe(false);
   });
+
+  it('hides the browser tab route while the extension is absent', () => {
+    const route = byId<HTMLSelectElement>('insert-route');
+    expect(route.hidden).toBe(true);
+    expect([...route.options].map((option) => option.value)).toEqual(['agent', 'tab']);
+  });
 });

@@ -1,7 +1,7 @@
 # План реализации: локальный аналог Speechpad
 
 Источник требований: `SPEECHPAD-REWRITE-PLAN.txt`.
-Статус: P0–P4 готовы, P5 (расширение Chrome) — следующий. Обновлять статус в конце каждой фазы.
+Статус: P0–P5 готовы, P6 (SDK-полировка) — следующий. Обновлять статус в конце каждой фазы.
 
 ## 0. Что строим (скоуп)
 
@@ -23,8 +23,8 @@ speechpad/
                      тесты vitest → build dist/speechpad.js (IIFE, global Speechpad)
   apps/web/          главное окно (index.html) + компактное (float.html), BroadcastChannel 'speechpad'
   apps/agent/        C# .NET 10: WS+HTTP на 127.0.0.1, статика, Injector, Hotkeys, TopMost, Tray, Autostart
-  apps/extension/    Chrome MV3: инъекция текста в поля других вкладок + релей на WS агента
-  docs/              PLAN.md API.md ACCEPTANCE.md
+  apps/extension/    Chrome MV3: вставка в поля активной вкладки (bridge + background + inserter)
+  docs/              PLAN.md API.md AGENT.md EXTENSION.md ACCEPTANCE.md
 ```
 
 ## 2. Принятые решения (отличия от исходного документа)
@@ -35,7 +35,7 @@ speechpad/
 | Вставка текста в чужую программу | clipboard + Ctrl+V (SendInput — сменяемый `ITextInjector`) | так же работает «Вывод в буфер обмена» у speechpad.ru; не требует сборки SendInput в MVP |
 | Транспорт | один WebSocket агента в обе стороны + `/v1/health` | web→agent: финалы; agent→web: команды хоткеев |
 | Хостинг UI | агент сам отдаёт `apps/web/dist` | один origin, токен не утекает левой вкладке, один процесс владеет всем |
-| Расширение Chrome | общается с тем же агентом по WS | не нужен native messaging и `install_host.bat` |
+| Расширение Chrome | мост `window.postMessage` на loopback-странице, WebSocket агента не используется | расширению не нужен токен агента и WS: вставка идёт напрямую в DOM, авторизация — факт загрузки `bridge.js` только на 127.0.0.1 |
 | Абстракция движка | `RecognitionFactory` как шов для тестов | фейковый распознаватель в юнит-тестах, вторые движки не планируются |
 | Мониторинг фоновой вкладки | окно с распознаванием держим активным | фоновая вкладка Chrome приглушает Web Speech |
 
@@ -66,10 +66,14 @@ speechpad/
 | P6 | SDK `speechpad.js` + `docs/API.md` | работает в чужом HTML |
 | P7 | приёмка по критериям §9, соак 30+ мин, отчёт | заполненный ACCEPTANCE.md |
 
-Фаза P4 закрыта: 81 тест агента (включая живые HTTP и WebSocket проверки) и 80
-тестов веба зелёные. Протокол, ключи командной строки и настройки агента —
+Фаза P4 закрыта: 81 тест агента (включая живые HTTP и WebSocket проверки) и 91
+тест веба зелёные. Протокол, ключи командной строки и настройки агента —
 [docs/AGENT.md](AGENT.md). Ручная часть приёмки P4 (текст в Word, хоткей при
-чужом фокусе) уходит в P7.
+чужом фокусе) пройдена 2026-09-29, отчёт в [docs/ACCEPTANCE.md](ACCEPTANCE.md).
+
+Фаза P5 закрыта: 43 теста расширения и 91 тест веба зелёные, сборка
+`npm run build -w @speechpad/extension` даёт загружаемую папку `dist`.
+Устройство, протокол и ограничения — [docs/EXTENSION.md](EXTENSION.md).
 
 ## 5. Риски
 

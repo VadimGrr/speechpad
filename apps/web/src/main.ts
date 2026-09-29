@@ -2,6 +2,7 @@ import { SpeechpadEngine } from '@speechpad/core';
 import type { Metrics, PublicState } from '@speechpad/core';
 import './styles.css';
 import { AgentClient, readInjectedHandshake } from './agent';
+import { ExtensionClient } from './extension';
 import { SyncBus, type StatePayload } from './channel';
 import { environmentMessage, inspectEnvironment } from './env';
 import {
@@ -63,6 +64,7 @@ function boot(): void {
   };
   const compactButton = el<HTMLButtonElement>('compact');
   const insertButton = el<HTMLButtonElement>('insert');
+  const insertRoute = el<HTMLSelectElement>('insert-route');
   const agentStatus = el<HTMLSpanElement>('agent-status');
 
   const bus = SyncBus.open();
@@ -191,6 +193,29 @@ function boot(): void {
     insertButton.setAttribute('aria-pressed', String(settings.autoInsert));
   });
 
+  insertRoute.value = settings.insertRoute;
+  insertRoute.addEventListener('change', () => {
+    settings.insertRoute = insertRoute.value === 'tab' ? 'tab' : 'agent';
+    saveSettings(settings);
+    showToast(
+      settings.insertRoute === 'tab'
+        ? 'Вставка идёт в поле активной вкладки браузера'
+        : 'Вставка идёт в активное окно Windows',
+    );
+  });
+
+  const extension = new ExtensionClient();
+  let extensionReady = false;
+  extension.start();
+  void extension.probe().then((state) => {
+    extensionReady = state.available && state.authorized;
+    insertRoute.hidden = !state.available;
+    if (state.available && !state.authorized) {
+      insertRoute.value = 'agent';
+      settings.insertRoute = 'agent';
+    }
+  });
+
   function updateStats(text: string): void {
     statsEl.textContent = `${countWords(text)} слов · ${countChars(text)} символов`;
   }
@@ -263,11 +288,7 @@ function boot(): void {
     syncUi();
     bus?.send({ kind: 'final', text });
     bus?.send({ kind: 'state', ...statePayload() });
-    if (agent && settings.autoInsert) {
-      void agent.insert(text).then((outcome) => {
-        if (!outcome.ok) showToast('Агент не вставил текст в активное окно');
-      });
-    }
+    if (settings.autoInsert) void insertFragment(text);
   });
   engine.on('state', (next) => {
     state = next;
@@ -280,6 +301,20 @@ function boot(): void {
     syncUi();
   });
   engine.on('metrics', queueMetrics);
+
+  async function insertFragment(text: string): Promise<void> {
+    if (settings.insertRoute === 'tab' && extensionReady) {
+      const outcome = await extension.insert(text);
+      if (!outcome.ok) showToast(outcome.message ?? 'Расширение не вставило текст в поле вкладки');
+      return;
+    }
+    if (!agent) {
+      showToast('Автовставка недоступна: запустите нативного агента');
+      return;
+    }
+    const outcome = await agent.insert(text);
+    if (!outcome.ok) showToast('Агент не вставил текст в активное окно');
+  }
 
   function clearAll(): void {
     view.clear();
@@ -359,6 +394,7 @@ function boot(): void {
     bus?.send({ kind: 'bye' });
     bus?.close();
     agent?.close();
+    extension.stop();
   });
 
   window.setInterval(() => {

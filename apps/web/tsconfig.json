@@ -6,7 +6,8 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@speechpad/core": ["../../packages/core/src/index.ts"]
+      "@speechpad/core": ["../../packages/core/src/index.ts"],
+      "@speechpad/extension-protocol": ["../extension/src/protocol.ts"]
     }
   },
   "include": ["src", "test", "vite.config.ts"]

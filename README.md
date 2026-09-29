@@ -17,14 +17,16 @@
 | P2 главное окно | готово |
 | P3 компактное окно | готово |
 | P4 нативный агент (C#) | готово (81 тест, протокол проверен) |
-| P5 расширение Chrome | план |
+| P5 расширение Chrome | готово (43 теста) |
 | P6 SDK | частично (собран `packages/core/dist/speechpad.js`) |
-| P7 приёмка и соак-тест | план |
+| P7 приёмка и соак-тест | P2–P4 пройдены 2026-09-29, остаются п. 7 и 25 |
 
 Подробный план и принятые решения: [docs/PLAN.md](docs/PLAN.md).
 Контракт SDK: [docs/API.md](docs/API.md).
 Нативный агент: [docs/AGENT.md](docs/AGENT.md).
+Расширение Chrome: [docs/EXTENSION.md](docs/EXTENSION.md).
 Синхронизация окон: [docs/CHANNEL.md](docs/CHANNEL.md).
+Результаты ручных проверок: [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md).
 
 ## Требования
 
@@ -63,14 +65,27 @@ npm run dev                                          # http://127.0.0.1:5173/
 
 Ключи агента и протокол: [docs/AGENT.md](docs/AGENT.md).
 
+## Расширение Chrome (по желанию)
+
+```bash
+npm run build -w @speechpad/extension
+```
+
+`chrome://extensions` → «Режим разработчика» → «Загрузить распакованное
+расширение» → папка `apps/extension/dist`. В главном окне появится список
+«Куда вставлять»: активное окно Windows (агент) или поле активной вкладки
+браузера (расширение — для паролей, iframe и редакторов).
+
+Подробности: [docs/EXTENSION.md](docs/EXTENSION.md).
+
 ## Как устроено
 
 ```
 packages/core    движок и публичный SDK, не зависит от DOM
 apps/web         главное и компактное окно
 apps/agent       нативный помощник для Windows: вставка текста, хоткеи, трей
-apps/extension   расширение Chrome для полей в других вкладках
-docs             план, контракт API, критерии приёмки
+apps/extension   расширение Chrome: вставка в поле активной вкладки
+docs             план, контракт API, агент, расширение, критерии приёмки
 ```
 
 ## Лицензия
