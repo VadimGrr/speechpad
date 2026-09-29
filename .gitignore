@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.vite/
+
+apps/agent/bin/
+apps/agent/obj/
+apps/web/dist/
+
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.local

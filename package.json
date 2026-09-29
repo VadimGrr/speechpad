@@ -1,0 +1,23 @@
+{
+  "name": "speechpad",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local speech-to-text for Windows: two windows, dictation into any app, web SDK",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @speechpad/core",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "agent:build": "dotnet build apps/agent/Speechpad.Agent.csproj -c Release"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  }
+}
