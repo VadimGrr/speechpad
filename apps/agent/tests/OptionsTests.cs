@@ -65,6 +65,84 @@ public class OptionsTests
     }
 
     [Fact]
+    public void ReadsHandWrittenSettingsFile()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"speechpad-{Guid.NewGuid():N}.json");
+        File.WriteAllText(
+            path,
+            """
+            {
+              "port": 8899,
+              "webRoot": "C:\\apps\\web\\dist",
+              "insertScheme": "UnicodeInput",
+              "toggleHotkey": "Ctrl+Alt+P",
+              "topmostHotkey": "Ctrl+Alt+O",
+              "clearHotkey": "Ctrl+Alt+I",
+              "trayIcon": false,
+              "verbose": true
+            }
+            """);
+        try
+        {
+            var loaded = OptionsStore.Load(path);
+
+            Assert.Equal(8899, loaded.Port);
+            Assert.Equal(@"C:\apps\web\dist", loaded.WebRoot);
+            Assert.Equal(InsertScheme.UnicodeInput, loaded.InsertScheme);
+            Assert.Equal("Ctrl+Alt+P", loaded.ToggleHotkey);
+            Assert.Equal("Ctrl+Alt+O", loaded.TopmostHotkey);
+            Assert.Equal("Ctrl+Alt+I", loaded.ClearHotkey);
+            Assert.False(loaded.TrayIcon);
+            Assert.True(loaded.Verbose);
+            Assert.Empty(loaded.Validate());
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void PartialSettingsFileKeepsDefaultsForMissingFields()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"speechpad-{Guid.NewGuid():N}.json");
+        File.WriteAllText(path, """{ "port": 8899 }""");
+        try
+        {
+            var loaded = OptionsStore.Load(path);
+
+            Assert.Equal(8899, loaded.Port);
+            Assert.Equal(InsertScheme.ClipboardPaste, loaded.InsertScheme);
+            Assert.Equal("Ctrl+Alt+Space", loaded.ToggleHotkey);
+            Assert.Equal(8787, new AgentOptions().Port);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Theory]
+    [InlineData("""{ "port": 8899, "insertScheme": "unicode" }""")]
+    [InlineData("""{ "port": 8899, "toggleHotkey": 5 }""")]
+    [InlineData("[]")]
+    public void BadValueDiscardsWholeFile(string json)
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"speechpad-{Guid.NewGuid():N}.json");
+        File.WriteAllText(path, json);
+        try
+        {
+            var loaded = OptionsStore.Load(path);
+            Assert.Equal(8787, loaded.Port);
+            Assert.Equal(InsertScheme.ClipboardPaste, loaded.InsertScheme);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
     public void FallsBackToDefaultsOnBrokenFile()
     {
         var path = Path.Combine(Path.GetTempPath(), $"speechpad-{Guid.NewGuid():N}.json");
