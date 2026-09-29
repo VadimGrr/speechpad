@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Speechpad — компактное окно</title>
+  </head>
+  <body class="float-body">
+    <div class="float">
+      <div class="float-bar">
+        <div id="float-status" class="float-status" data-state="offline">
+          <span class="dot"></span>
+          <span class="label">Нет связи с главным окном</span>
+          <span id="float-timer" class="float-timer"></span>
+        </div>
+        <div class="grow"></div>
+        <button id="float-toggle" class="control" type="button">Слушать</button>
+        <button id="float-copy" class="control" type="button">Копировать</button>
+        <button id="float-clear" class="control" type="button">Стереть</button>
+        <button
+          id="float-open-main"
+          class="control"
+          type="button"
+          title="Показать главное окно"
+        >
+          Главное
+        </button>
+        <button id="float-close" class="control" type="button" title="Закрыть окно">
+          ✕
+        </button>
+      </div>
+
+      <div id="float-text" class="float-text" aria-live="polite"></div>
+
+      <div id="float-link" class="float-link">
+        <span>Главное окно не запущено — компактное окно показывает текст только пока оно открыто.</span>
+      </div>
+    </div>
+    <script type="module" src="/src/float-app.ts"></script>
+  </body>
+</html>

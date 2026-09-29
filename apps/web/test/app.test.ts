@@ -13,6 +13,7 @@ function byId<T extends HTMLElement>(id: string): T {
 
 describe('main window bootstrap', () => {
   beforeAll(async () => {
+    Reflect.deleteProperty(globalThis, 'BroadcastChannel');
     document.body.innerHTML = body.replace(/<script[\s\S]*?<\/script>/g, '');
     document.body.querySelectorAll('script').forEach((node) => node.remove());
     await import('../src/main');
@@ -37,6 +38,12 @@ describe('main window bootstrap', () => {
     expect(byId<HTMLButtonElement>('copy').disabled).toBe(true);
     expect(byId<HTMLButtonElement>('metrics-toggle').disabled).toBe(false);
     expect(byId<HTMLButtonElement>('theme').disabled).toBe(false);
+  });
+
+  it('keeps the compact window button dead without BroadcastChannel', () => {
+    const compact = byId<HTMLButtonElement>('compact');
+    expect(compact.disabled).toBe(true);
+    expect(compact.title).toContain('BroadcastChannel');
   });
 
   it('offers a list of recognition languages', () => {

@@ -1,6 +1,7 @@
 import { SpeechpadEngine } from '@speechpad/core';
 import type { Metrics, PublicState } from '@speechpad/core';
 import './styles.css';
+import { SyncBus, type StatePayload } from './channel';
 import { environmentMessage, inspectEnvironment } from './env';
 import {
   clearTranscript,
@@ -25,8 +26,10 @@ const LANGUAGES: { code: string; label: string }[] = [
 ];
 
 const SAVE_DEBOUNCE_MS = 800;
+const SNAPSHOT_DEBOUNCE_MS = 400;
 const METRICS_THROTTLE_MS = 500;
 const TOAST_MS = 6000;
+const FLOAT_FEATURES = 'popup=yes,width=560,height=280';
 
 function el<T extends HTMLElement>(id: string): T {
   const node = document.getElementById(id);
@@ -56,6 +59,10 @@ function boot(): void {
     clear: el<HTMLButtonElement>('clear'),
     copy: el<HTMLButtonElement>('copy'),
   };
+  const compactButton = el<HTMLButtonElement>('compact');
+
+  const bus = SyncBus.open();
+  let compact: Window | null = null;
 
   let state: PublicState = 'idle';
   let sessionStart = 0;
@@ -63,16 +70,76 @@ function boot(): void {
   let toastTimer: number | null = null;
   let lastMetricsAt = 0;
   let metricsTimer: number | null = null;
+  let snapshotTimer: number | null = null;
+
+  if (!bus) {
+    compactButton.disabled = true;
+    compactButton.title = 'Браузер не поддерживает BroadcastChannel';
+  }
 
   const view = new TranscriptView(transcriptRoot, {
-    onCommit: (text) => {
+    onCommit: (text, source) => {
       updateStats(text);
       scheduleSave(text);
       syncUi();
+      if (!bus) return;
+      if (source === 'edit') scheduleSnapshot();
+      if (source === 'clear') bus.send({ kind: 'reset' });
     },
   });
   view.setText(loadTranscript());
   updateStats(view.text);
+
+  function statePayload(): StatePayload {
+    return {
+      state,
+      supported: engine.isSupported,
+      hasText: view.text.trim().length > 0,
+      theme: settings.theme,
+    };
+  }
+
+  function sendSnapshot(): void {
+    bus?.send({ kind: 'snapshot', text: view.text, ...statePayload() });
+  }
+
+  function openCompact(): void {
+    if (!bus) return;
+    if (compact && !compact.closed) {
+      compact.focus();
+      return;
+    }
+    const url = new URL('float.html', window.location.href).href;
+    compact = window.open(url, 'speechpad-float', FLOAT_FEATURES);
+    if (!compact) showToast('Браузер заблокировал всплывающее окно');
+  }
+
+  compactButton.addEventListener('click', openCompact);
+
+  bus?.onMessage((message) => {
+    switch (message.kind) {
+      case 'hello':
+        sendSnapshot();
+        break;
+      case 'command':
+        if (message.command === 'toggle') {
+          engine.toggle();
+          syncUi();
+        } else if (message.command === 'clear') {
+          clearAll();
+        } else if (message.command === 'copy') {
+          copyAll();
+        } else if (message.command === 'focus-main') {
+          window.focus();
+        }
+        break;
+      case 'bye':
+        compact = null;
+        break;
+      default:
+        break;
+    }
+  });
 
   const env = inspectEnvironment(engine.isSupported, engine.unsupportedReason);
   const envMessage = environmentMessage(env);
@@ -94,6 +161,15 @@ function boot(): void {
       saveTimer = null;
       saveTranscript(text);
     }, SAVE_DEBOUNCE_MS);
+  }
+
+  function scheduleSnapshot(): void {
+    if (!bus) return;
+    if (snapshotTimer !== null) window.clearTimeout(snapshotTimer);
+    snapshotTimer = window.setTimeout(() => {
+      snapshotTimer = null;
+      sendSnapshot();
+    }, SNAPSHOT_DEBOUNCE_MS);
   }
 
   function showToast(message: string): void {
@@ -137,16 +213,22 @@ function boot(): void {
     }, METRICS_THROTTLE_MS);
   }
 
-  engine.on('partial', (text) => view.setInterim(text));
+  engine.on('partial', (text) => {
+    view.setInterim(text);
+    bus?.send({ kind: 'interim', text });
+  });
   engine.on('final', (text) => {
     view.appendFinal(text);
     scheduleSave(view.text);
     syncUi();
+    bus?.send({ kind: 'final', text });
+    bus?.send({ kind: 'state', ...statePayload() });
   });
   engine.on('state', (next) => {
     state = next;
     view.flush();
     syncUi();
+    bus?.send({ kind: 'state', ...statePayload() });
   });
   engine.on('error', (info) => {
     showToast(info.message);
@@ -154,20 +236,15 @@ function boot(): void {
   });
   engine.on('metrics', queueMetrics);
 
-  controls.toggle.addEventListener('click', () => {
-    engine.toggle();
-    syncUi();
-  });
-
-  controls.clear.addEventListener('click', () => {
+  function clearAll(): void {
     view.clear();
     engine.clear();
     clearTranscript();
     updateStats('');
     syncUi();
-  });
+  }
 
-  controls.copy.addEventListener('click', async () => {
+  async function copyAll(): Promise<void> {
     const text = view.text;
     if (!text) return;
     try {
@@ -176,7 +253,15 @@ function boot(): void {
     } catch {
       showToast('Не удалось скопировать: браузер запретил доступ к буферу');
     }
+  }
+
+  controls.toggle.addEventListener('click', () => {
+    engine.toggle();
+    syncUi();
   });
+
+  controls.clear.addEventListener('click', clearAll);
+  controls.copy.addEventListener('click', () => void copyAll());
 
   langSelect.replaceChildren(
     ...LANGUAGES.map((item) => {
@@ -203,6 +288,7 @@ function boot(): void {
     settings.theme = settings.theme === 'dark' ? 'light' : 'dark';
     saveSettings(settings);
     applyTheme(settings.theme);
+    bus?.send({ kind: 'state', ...statePayload() });
   });
 
   metricsEl.hidden = !settings.showMetrics;
@@ -223,8 +309,10 @@ function boot(): void {
     syncUi();
   });
 
-  window.addEventListener('beforeunload', () => {
+  window.addEventListener('pagehide', () => {
     saveTranscript(view.text);
+    bus?.send({ kind: 'bye' });
+    bus?.close();
   });
 
   window.setInterval(() => {

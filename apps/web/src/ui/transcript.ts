@@ -1,5 +1,7 @@
+export type CommitSource = 'append' | 'edit' | 'clear';
+
 export interface TranscriptViewOptions {
-  onCommit?: (text: string) => void;
+  onCommit?: (text: string, source: CommitSource) => void;
 }
 
 const GHOST_CLASS = 'ghost';
@@ -43,7 +45,7 @@ function placeCaret(root: HTMLElement, target: number): void {
 
 export class TranscriptView {
   private readonly root: HTMLElement;
-  private readonly onCommit: (text: string) => void;
+  private readonly onCommit: (text: string, source: CommitSource) => void;
   private readonly textNode: Text;
   private ghost: HTMLSpanElement | null = null;
   private committed = '';
@@ -60,7 +62,7 @@ export class TranscriptView {
       this.committed = this.root.textContent ?? '';
       this.dropGhost();
       this.paint();
-      this.onCommit(this.committed);
+      this.onCommit(this.committed, 'edit');
     };
     this.handleKeydown = (event) => {
       if (event.key !== 'Enter' || event.ctrlKey || event.metaKey) return;
@@ -103,7 +105,7 @@ export class TranscriptView {
     this.committed = `${before}${spacerBefore}${piece}${spacerAfter}${after}`;
     this.paint();
     placeCaret(this.root, caret + spacerBefore.length + piece.length);
-    this.onCommit(this.committed);
+    this.onCommit(this.committed, 'append');
   }
 
   insertAtCaret(raw: string): void {
@@ -113,7 +115,7 @@ export class TranscriptView {
     this.committed = `${this.committed.slice(0, caret)}${raw}${this.committed.slice(caret)}`;
     this.paint();
     placeCaret(this.root, caret + raw.length);
-    this.onCommit(this.committed);
+    this.onCommit(this.committed, 'edit');
   }
 
   setInterim(text: string): void {
@@ -142,7 +144,7 @@ export class TranscriptView {
     this.cancelFrame();
     this.dropGhost();
     this.paint();
-    this.onCommit('');
+    this.onCommit('', 'clear');
   }
 
   destroy(): void {

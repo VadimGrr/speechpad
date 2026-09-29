@@ -1,0 +1,119 @@
+.float-body {
+  background: transparent;
+  padding: 0;
+  overflow: hidden;
+  user-select: none;
+}
+
+.float {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 8px;
+  gap: 8px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.float-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.float-bar .control {
+  padding: 5px 9px;
+  font-size: 12px;
+}
+
+.float-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 10px 3px 8px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.float-status .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.float-status[data-state='listening'] {
+  color: var(--text);
+  border-color: rgba(61, 220, 132, 0.4);
+}
+
+.float-status[data-state='listening'] .dot {
+  background: var(--good);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.float-status[data-state='paused'] .dot {
+  background: var(--warn);
+}
+
+.float-status[data-state='error'] .dot {
+  background: var(--bad);
+}
+
+.float-status[data-state='offline'] {
+  border-color: rgba(255, 182, 72, 0.4);
+}
+
+.float-status[data-state='offline'] .dot {
+  background: var(--warn);
+}
+
+.float-timer {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.float-text {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel) 70%, transparent);
+  border: 1px solid var(--line);
+  font-size: 19px;
+  line-height: 1.4;
+  color: var(--text);
+  user-select: text;
+  scrollbar-width: thin;
+}
+
+.float-text .ghost {
+  color: var(--ghost);
+}
+
+.float-text:empty::before {
+  content: 'Здесь появится распознанный текст';
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.float-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel-2) 80%, transparent);
+  border: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+}

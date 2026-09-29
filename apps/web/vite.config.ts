@@ -15,6 +15,12 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     assetsInlineLimit: 4096,
+    rollupOptions: {
+      input: {
+        main: resolve(here, 'index.html'),
+        float: resolve(here, 'float.html'),
+      },
+    },
   },
   resolve: {
     alias: {
