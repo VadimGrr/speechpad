@@ -66,7 +66,6 @@ internal static class NativeMethods
     }
 
     [DllImport("user32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
     public static extern uint SendInput(uint count, Input[] inputs, int size);
 
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
