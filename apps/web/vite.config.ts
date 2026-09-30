@@ -19,6 +19,8 @@ export default defineConfig({
       input: {
         main: resolve(here, 'index.html'),
         float: resolve(here, 'float.html'),
+        'insert-test': resolve(here, 'insert-test.html'),
+        'frame-field': resolve(here, 'frame-field.html'),
       },
     },
   },

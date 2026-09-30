@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Проверка вставки — поля всех типов</title>
+    <style>
+      :root {
+        --line: #d5d9e0;
+        --muted: #667085;
+        color-scheme: light dark;
+      }
+      body {
+        margin: 0;
+        padding: 28px 20px 60px;
+        font: 15px/1.55 system-ui, -apple-system, 'Segoe UI', sans-serif;
+        background: Canvas;
+        color: CanvasText;
+      }
+      h1 {
+        font-size: 22px;
+        margin: 0 0 6px;
+      }
+      .lead {
+        color: var(--muted);
+        max-width: 62ch;
+        margin: 0 0 24px;
+      }
+      section {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 16px;
+        margin: 0 0 16px;
+        max-width: 720px;
+      }
+      h2 {
+        font-size: 15px;
+        margin: 0 0 4px;
+      }
+      .tag {
+        display: inline-block;
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--muted);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        padding: 1px 6px;
+        margin-bottom: 10px;
+      }
+      p.criterion {
+        margin: 0 0 12px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      input,
+      textarea,
+      .editable {
+        font: inherit;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: color-mix(in srgb, Canvas 92%, CanvasText 8%);
+        color: inherit;
+      }
+      textarea {
+        min-height: 90px;
+        resize: vertical;
+      }
+      .editable {
+        min-height: 70px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      iframe {
+        width: 100%;
+        height: 110px;
+        border: 1px dashed var(--line);
+        border-radius: 7px;
+        background: color-mix(in srgb, Canvas 92%, CanvasText 8%);
+      }
+      .empty {
+        min-height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        border: 1px dashed var(--line);
+        border-radius: 7px;
+        text-align: center;
+        padding: 16px;
+      }
+      .log {
+        position: fixed;
+        right: 14px;
+        bottom: 14px;
+        width: 330px;
+        max-height: 40vh;
+        overflow: auto;
+        font: 12px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace;
+        background: color-mix(in srgb, Canvas 92%, CanvasText 8%);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 8px 10px;
+        white-space: pre-wrap;
+      }
+      .log b {
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Проверка вставки</h1>
+    <p class="lead">
+      Страница отдаётся агентом с 127.0.0.1, поэтому расширение в неё
+      авторизовано. Щёлкните по нужному полю, продиктуйте фразу и отметьте,
+      что текст появился. Внизу справа — журнал событий вставки.
+    </p>
+
+    <section>
+      <span class="tag">пункт 28</span>
+      <h2>Обычное текстовое поле</h2>
+      <p class="criterion">Базовая вставка: курсор должен оказаться в поле.</p>
+      <input id="plain" type="text" placeholder="щёлкните здесь" />
+    </section>
+
+    <section>
+      <span class="tag">пункт 28</span>
+      <h2>Многострочное поле</h2>
+      <p class="criterion">Вставка должна попасть в место курсора, а не в конец.</p>
+      <textarea id="area" placeholder="поставьте курсор в середину и продиктуйте"></textarea>
+    </section>
+
+    <section>
+      <span class="tag">пункт 28</span>
+      <h2>Редактируемый блок (contenteditable)</h2>
+      <p class="criterion">Тот же случай для текста без тега input.</p>
+      <div id="rich" class="editable" contenteditable="true" role="textbox" aria-multiline="true"></div>
+    </section>
+
+    <section>
+      <span class="tag">пункт 29</span>
+      <h2>Поле пароля</h2>
+      <p class="criterion">
+        Вставка должна пройти. Chrome не показывает символы — сверяйте длину
+        значения в консоли страницы, а не сам текст.
+      </p>
+      <input id="secret" type="password" placeholder="пароль" autocomplete="off" />
+    </section>
+
+    <section>
+      <span class="tag">пункт 30</span>
+      <h2>Поле внутри iframe</h2>
+      <p class="criterion">
+        Отдельный документ в том же источнике: содержимое вставляется в поле
+        внутри рамки, а не в страницу снаружи.
+      </p>
+      <iframe id="frame" src="frame-field.html" title="поле во фрейме"></iframe>
+    </section>
+
+    <section>
+      <span class="tag">пункт 31</span>
+      <h2>Страница без полей ввода</h2>
+      <p class="criterion">
+        Вкладка без полей: Speechpad не должен падать, а показать понятное
+        сообщение. Проверьте вкладку с этой страницей, убрав фокус с полей.
+      </p>
+      <div class="empty">Здесь нет ни одного поля ввода. Кликните по этому месту.</div>
+    </section>
+
+    <div class="log" id="log"><b>События вставки появятся здесь</b></div>
+
+    <script>
+      (function () {
+        'use strict';
+        var log = document.getElementById('log');
+        var lines = [];
+
+        function write(text) {
+          lines.unshift(new Date().toLocaleTimeString() + '  ' + text);
+          lines = lines.slice(0, 40);
+          log.textContent = lines.join('\n');
+        }
+
+        ['plain', 'area', 'rich', 'secret'].forEach(function (id) {
+          var node = document.getElementById(id);
+          node.addEventListener('input', function () {
+            if (id === 'secret') {
+              write('пароль: вставлено символов — ' + node.value.length);
+            } else {
+              write('поле #' + id + ': вставлено символов — ' + node.value.length);
+            }
+          });
+        });
+
+        document.getElementById('frame').addEventListener('load', function () {
+          var doc = this.contentDocument;
+          if (!doc) return;
+          var field = doc.getElementById('inside');
+          if (field) {
+            field.addEventListener('input', function () {
+              write('внутри iframe: вставлено символов — ' + field.value.length);
+            });
+          }
+        });
+
+        write('страница загружена, поля готовы');
+      })();
+    </script>
+  </body>
+</html>
