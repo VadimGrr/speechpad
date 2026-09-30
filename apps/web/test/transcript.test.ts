@@ -13,6 +13,68 @@ function ghostText(root: HTMLElement): string {
   return root.querySelector('.ghost')?.textContent ?? '';
 }
 
+function mountSplit(): { root: HTMLDivElement; interim: HTMLDivElement; view: TranscriptView } {
+  const root = document.createElement('div');
+  root.contentEditable = 'true';
+  root.tabIndex = 0;
+  const interim = document.createElement('div');
+  document.body.replaceChildren(root, interim);
+  return { root, interim, view: new TranscriptView(root, {}, interim) };
+}
+
+describe('TranscriptView split panes', () => {
+  beforeEach(() => {
+    document.body.replaceChildren();
+  });
+
+  it('shows the interim text in its own pane, not in the transcript', () => {
+    const { root, interim, view } = mountSplit();
+    view.appendFinal('подтверждённое');
+    view.setInterim('произносимое');
+    view.flush();
+    expect(interim.textContent).toBe('произносимое');
+    expect(root.textContent).toBe('подтверждённое');
+  });
+
+  it('moves the text into the transcript once it is final', () => {
+    const { root, interim, view } = mountSplit();
+    view.setInterim('черновик');
+    view.flush();
+    expect(interim.textContent).toBe('черновик');
+    view.appendFinal('черновик целиком');
+    view.setInterim('');
+    view.flush();
+    expect(interim.textContent).toBe('');
+    expect(root.textContent).toBe('черновик целиком');
+  });
+
+  it('keeps the interim pane clean between phrases', () => {
+    const { interim, view } = mountSplit();
+    view.setInterim('первое');
+    view.flush();
+    view.setInterim('');
+    view.flush();
+    expect(interim.textContent).toBe('');
+  });
+
+  it('empties the interim pane on clear', () => {
+    const { interim, view } = mountSplit();
+    view.setInterim('ещё говорим');
+    view.flush();
+    view.clear();
+    expect(interim.textContent).toBe('');
+  });
+
+  it('never glues the interim pane to the transcript text', () => {
+    const { root, interim, view } = mountSplit();
+    view.appendFinal('готово');
+    view.setInterim('ещё');
+    view.flush();
+    expect(root.textContent).toBe('готово');
+    expect(interim.textContent).toBe('ещё');
+  });
+});
+
 describe('TranscriptView', () => {
   beforeEach(() => {
     document.body.replaceChildren();

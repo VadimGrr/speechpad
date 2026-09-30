@@ -47,6 +47,7 @@ export class TranscriptView {
   private readonly root: HTMLElement;
   private readonly onCommit: (text: string, source: CommitSource) => void;
   private readonly textNode: Text;
+  private readonly interimRoot: HTMLElement | null;
   private ghost: HTMLSpanElement | null = null;
   private committed = '';
   private interim = '';
@@ -54,9 +55,14 @@ export class TranscriptView {
   private readonly handleInput: () => void;
   private readonly handleKeydown: (event: KeyboardEvent) => void;
 
-  constructor(root: HTMLElement, options: TranscriptViewOptions = {}) {
+  constructor(
+    root: HTMLElement,
+    options: TranscriptViewOptions = {},
+    interimRoot: HTMLElement | null = null,
+  ) {
     this.root = root;
     this.onCommit = options.onCommit ?? (() => {});
+    this.interimRoot = interimRoot;
     this.textNode = document.createTextNode('');
     this.handleInput = () => {
       this.committed = this.root.textContent ?? '';
@@ -163,6 +169,10 @@ export class TranscriptView {
   }
 
   private paintGhost(): void {
+    if (this.interimRoot) {
+      this.interimRoot.textContent = this.interim;
+      return;
+    }
     if (!this.interim) {
       this.dropGhost();
       return;
@@ -182,6 +192,10 @@ export class TranscriptView {
   }
 
   private dropGhost(): void {
+    if (this.interimRoot) {
+      this.interimRoot.textContent = '';
+      return;
+    }
     if (!this.ghost) return;
     this.ghost.remove();
     this.ghost = null;

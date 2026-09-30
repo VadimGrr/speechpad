@@ -85,16 +85,20 @@ function boot(): void {
     compactButton.title = 'Браузер не поддерживает BroadcastChannel';
   }
 
-  const view = new TranscriptView(transcriptRoot, {
-    onCommit: (text, source) => {
-      updateStats(text);
-      scheduleSave(text);
-      syncUi();
-      if (!bus) return;
-      if (source === 'edit') scheduleSnapshot();
-      if (source === 'clear') bus.send({ kind: 'reset' });
+  const view = new TranscriptView(
+    transcriptRoot,
+    {
+      onCommit: (text, source) => {
+        updateStats(text);
+        scheduleSave(text);
+        syncUi();
+        if (!bus) return;
+        if (source === 'edit') scheduleSnapshot();
+        if (source === 'clear') bus.send({ kind: 'reset' });
+      },
     },
-  });
+    el<HTMLDivElement>('interim'),
+  );
   view.setText(loadTranscript());
   updateStats(view.text);
 
