@@ -63,7 +63,39 @@ describe('TranscriptView', () => {
     expect(ghostText(root)).toBe('третий');
   });
 
-  it('inserts at the caret when the editor is focused', () => {
+  it('appends at the end even when the editor is focused', () => {
+    const { root, view } = mount();
+    view.setText('слева справа');
+    root.focus();
+    const textNode = root.firstChild as Text;
+    const range = document.createRange();
+    range.setStart(textNode, 0);
+    range.collapse(true);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    view.appendFinal('ФРАЗА');
+    expect(view.text).toBe('слева справа ФРАЗА');
+  });
+
+  it('leaves the caret untouched so a stray selection cannot move text', () => {
+    const { view } = mount();
+    view.setText('начало');
+    const before = window.getSelection()?.rangeCount ?? 0;
+    view.appendFinal('ещё');
+    expect(view.text).toBe('начало ещё');
+    expect(window.getSelection()?.rangeCount ?? 0).toBe(before);
+  });
+
+  it('releases focus so the transcript stops being a paste target', () => {
+    const { root, view } = mount();
+    root.focus();
+    expect(document.activeElement).toBe(root);
+    view.releaseFocus();
+    expect(document.activeElement).not.toBe(root);
+  });
+
+  it('keeps manual typing in the middle of the text', () => {
     const { root, view } = mount();
     view.setText('слева справа');
     root.focus();
@@ -74,17 +106,8 @@ describe('TranscriptView', () => {
     const selection = window.getSelection();
     selection?.removeAllRanges();
     selection?.addRange(range);
-    view.appendFinal('ВСТАВКА');
-    expect(view.text).toBe('слева ВСТАВКА справа');
-  });
-
-  it('puts the caret right after the inserted fragment', () => {
-    const { root, view } = mount();
-    root.focus();
-    view.appendFinal('фраза');
-    const selection = window.getSelection();
-    expect(selection?.anchorNode?.textContent).toBe('фраза');
-    expect(selection?.anchorOffset).toBe(5);
+    view.insertAtCaret('ПРАВКА');
+    expect(view.text).toBe('слева ПРАВКАсправа');
   });
 
   it('adopts manual edits made by the user', () => {

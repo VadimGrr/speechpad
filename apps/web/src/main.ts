@@ -309,6 +309,7 @@ function boot(): void {
     if (settings.autoInsert) void insertFragment(text);
   });
   engine.on('state', (next) => {
+    if (next === 'listening') view.releaseFocus();
     state = next;
     view.flush();
     syncUi();

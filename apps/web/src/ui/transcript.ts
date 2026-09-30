@@ -78,6 +78,13 @@ export class TranscriptView {
     return this.committed;
   }
 
+  releaseFocus(): void {
+    const doc = this.root.ownerDocument;
+    if (doc.activeElement !== this.root) return;
+    doc.defaultView?.getSelection()?.removeAllRanges();
+    this.root.blur();
+  }
+
   get interimText(): string {
     return this.interim;
   }
@@ -97,14 +104,10 @@ export class TranscriptView {
     const piece = text.trim();
     if (!piece) return;
     this.dropGhost();
-    const caret = this.readCaret() ?? this.committed.length;
-    const before = this.committed.slice(0, caret);
-    const after = this.committed.slice(caret);
-    const spacerBefore = before.length > 0 && !/\s$/.test(before) ? ' ' : '';
-    const spacerAfter = after.length > 0 && !/^\s/.test(after) ? ' ' : '';
-    this.committed = `${before}${spacerBefore}${piece}${spacerAfter}${after}`;
+    const before = this.committed;
+    const spacer = before.length > 0 && !/\s$/.test(before) ? ' ' : '';
+    this.committed = `${before}${spacer}${piece}`;
     this.paint();
-    placeCaret(this.root, caret + spacerBefore.length + piece.length);
     this.onCommit(this.committed, 'append');
   }
 
