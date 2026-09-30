@@ -135,6 +135,13 @@ describe('FloatWindow', () => {
     expect(byId('float-text').textContent).toBe('начало фразы');
   });
 
+  it('separates the ghost from the tail so words do not glue', async () => {
+    main.send({ kind: 'snapshot', text: 'готово', ...payload() });
+    main.send({ kind: 'interim', text: 'ещё' });
+    await frame();
+    expect(byId('float-text').textContent).toBe('готово ещё');
+  });
+
   it('shows the interim text as a ghost inside the tail', async () => {
     main.send({ kind: 'snapshot', text: 'начало', ...payload() });
     main.send({ kind: 'interim', text: ' фразы' });

@@ -172,8 +172,13 @@ export class TranscriptView {
       this.ghost.className = GHOST_CLASS;
       this.ghost.setAttribute('aria-hidden', 'true');
     }
-    this.ghost.textContent = this.interim;
+    this.ghost.textContent = `${this.ghostSpacer()}${this.interim}`;
     this.root.append(this.ghost);
+  }
+
+  private ghostSpacer(): string {
+    if (!this.interim || this.interim.startsWith(' ')) return '';
+    return this.committed.length > 0 && !/\s$/.test(this.committed) ? ' ' : '';
   }
 
   private dropGhost(): void {

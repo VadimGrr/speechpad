@@ -207,8 +207,9 @@ export class FloatWindow {
   }
 
   private render(): void {
-    this.textNode.textContent = tail(this.committed);
-    this.ghost.textContent = this.interim;
+    const committed = tail(this.committed);
+    this.textNode.textContent = committed;
+    this.ghost.textContent = `${this.ghostSpacer(committed)}${this.interim}`;
     if (this.interim) this.text.append(this.ghost);
     else this.ghost.remove();
     this.text.scrollTop = this.text.scrollHeight;
@@ -225,6 +226,11 @@ export class FloatWindow {
     this.toggle.textContent =
       state === 'listening' ? 'Пауза' : state === 'paused' ? 'Продолжить' : 'Слушать';
     this.renderTimer();
+  }
+
+  private ghostSpacer(committed: string): string {
+    if (!this.interim || this.interim.startsWith(' ')) return '';
+    return committed.length > 0 && !/\s$/.test(committed) ? ' ' : '';
   }
 
   private renderTimer(): void {

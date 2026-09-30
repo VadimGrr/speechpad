@@ -38,8 +38,31 @@ describe('TranscriptView', () => {
     view.appendFinal('начало фразы');
     view.setInterim('и продолжение');
     view.flush();
-    expect(root.textContent).toBe('начало фразыи продолжение');
-    expect(ghostText(root)).toBe('и продолжение');
+    expect(root.textContent).toBe('начало фразы и продолжение');
+    expect(ghostText(root)).toBe(' и продолжение');
+  });
+
+  it('does not add a second space before the ghost', () => {
+    const { root, view } = mount();
+    view.appendFinal('начало фразы ');
+    view.setInterim('продолжение');
+    view.flush();
+    expect(root.textContent).toBe('начало фразы продолжение');
+  });
+
+  it('never doubles a space when the interim already starts with one', () => {
+    const { root, view } = mount();
+    view.appendFinal('начало');
+    view.setInterim(' уже с пробелом');
+    view.flush();
+    expect(root.textContent).toBe('начало уже с пробелом');
+  });
+
+  it('keeps the ghost glued to nothing at the start of an empty transcript', () => {
+    const { root, view } = mount();
+    view.setInterim('первое слово');
+    view.flush();
+    expect(root.textContent).toBe('первое слово');
   });
 
   it('replaces the ghost with the final text', () => {
