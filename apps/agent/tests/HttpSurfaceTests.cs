@@ -34,7 +34,8 @@ public class HttpSurfaceTests : IAsyncLifetime
             new AgentOptions { Port = Port, WebRoot = root },
             new AgentLog(null, verbose: false),
             new EchoInsertion(),
-            new NullActions());
+            new NullActions(),
+            LicenseFixture.Valid());
         server.Start();
         token = server.Token;
         client = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{Port}") };

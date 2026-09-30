@@ -123,7 +123,8 @@ public class ServerTests
             new AgentOptions { Port = port },
             new AgentLog(null, verbose: false),
             new NullInsertion(),
-            new NullActions());
+            new NullActions(),
+            LicenseFixture.Valid());
 
     private sealed class NullInsertion : IInsertionQueue
     {

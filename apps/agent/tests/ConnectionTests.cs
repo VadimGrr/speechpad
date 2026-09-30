@@ -111,7 +111,8 @@ public class ConnectionTests
                     CompactWindowTitle = $"speechpad-missing-compact-{Guid.NewGuid():N}",
                 },
                 new AgentLog(null, verbose: false),
-                Actions);
+                Actions,
+                LicenseFixture.Valid());
         }
 
         public FakeQueue Queue { get; } = new();

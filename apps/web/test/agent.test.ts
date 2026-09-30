@@ -6,6 +6,7 @@ import {
   readInjectedHandshake,
   type AgentSocket,
   type AgentStatus,
+  type AgentLicense,
 } from '../src/agent';
 
 type Listener = (event: { data: unknown } | undefined) => void;
@@ -248,5 +249,79 @@ describe('agent client', () => {
     vi.advanceTimersByTime(10_000);
     expect(FakeSocket.last).toBe(socket());
     return expect(pending).resolves.toEqual({ ok: false, scheme: 'clipboard' });
+  });
+});
+
+describe('license reporting', () => {
+  it('defaults to allowed before the agent says anything', () => {
+    const { client } = createClient();
+    expect(client.license).toEqual({
+      state: 'unknown',
+      message: '',
+      insertAllowed: true,
+      extensionAllowed: true,
+    });
+  });
+
+  it('publishes the license state from the ready message', () => {
+    const { client, socket } = createClient();
+    const seen: AgentLicense[] = [];
+    client.onLicense((info) => seen.push(info));
+    client.connect();
+    socket().open();
+    socket().message({
+      type: 'ready',
+      insertScheme: 'clipboard',
+      licenseState: 'valid',
+      licenseMessage: 'действует до 2030-01-01',
+      insertAllowed: true,
+      extensionAllowed: true,
+    });
+    expect(client.license.state).toBe('valid');
+    expect(client.license.insertAllowed).toBe(true);
+    expect(seen).toHaveLength(1);
+  });
+
+  it('reports a blocked insertion when the license is missing', () => {
+    const { client, socket } = createClient();
+    client.connect();
+    socket().open();
+    socket().message({
+      type: 'ready',
+      insertScheme: 'clipboard',
+      licenseState: 'missing',
+      licenseMessage: 'лицензия не найдена',
+      insertAllowed: false,
+      extensionAllowed: false,
+    });
+    expect(client.license.state).toBe('missing');
+    expect(client.license.insertAllowed).toBe(false);
+    expect(client.license.extensionAllowed).toBe(false);
+  });
+
+  it('keeps the previous state when the agent sends no license fields', () => {
+    const { client, socket } = createClient();
+    client.connect();
+    socket().open();
+    socket().message({ type: 'ready', licenseState: 'trial', licenseMessage: 'осталось 2 дн.' });
+    socket().message({ type: 'ready' });
+    expect(client.license.state).toBe('trial');
+  });
+
+  it('does not repeat the same state', () => {
+    const { client, socket } = createClient();
+    const seen: AgentLicense[] = [];
+    client.onLicense((info) => seen.push(info));
+    client.connect();
+    socket().open();
+    const ready = {
+      type: 'ready',
+      licenseState: 'valid',
+      licenseMessage: 'бессрочная лицензия',
+      insertAllowed: true,
+    };
+    socket().message(ready);
+    socket().message(ready);
+    expect(seen).toHaveLength(1);
   });
 });

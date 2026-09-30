@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>speechpad-license</AssemblyName>
+    <RootNamespace>Speechpad.LicenseTool</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\apps\agent\Licensing\LicensePayload.cs" Link="LicensePayload.cs" />
+    <Compile Include="..\..\apps\agent\Licensing\LicenseVerifier.cs" Link="LicenseVerifier.cs" />
+  </ItemGroup>
+
+</Project>

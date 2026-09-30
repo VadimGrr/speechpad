@@ -1,6 +1,7 @@
 using System.Globalization;
 using Speechpad.Agent;
 using Speechpad.Agent.Insertion;
+using Speechpad.Agent.Licensing;
 using Speechpad.Agent.Startup;
 using Speechpad.Agent.Tray;
 using Speechpad.Agent.Windows;
@@ -53,12 +54,37 @@ if (problems.Count > 0)
     return 2;
 }
 
-using var log = new AgentLog(AgentLog.DefaultPath, options.Verbose);
-log.Info($"speechpad-agent starting, settings {settingsPath}");
+var licenseGate = new LicenseGate(
+    cli.LicensePath ?? options.LicensePath ?? LicenseLocations.DefaultPath,
+    KeyPair.PublicKeyPem,
+    log: null,
+    machineId: cli.MachineId,
+    trialDays: options.RequireLicense ? 0 : options.TrialDays);
 
-var insertion = new InsertionService(InsertionSchemes.Create(options.InsertScheme));
-new TrayApplication(options, log, insertion).Run();
-insertion.Dispose();
+if (cli.LicenseInfo)
+{
+    Console.WriteLine($"файл: {licenseGate.Path}");
+    Console.WriteLine($"компьютер: {licenseGate.MachineId ?? "не определён"}");
+    Console.WriteLine($"состояние: {licenseGate.State.ToString().ToLowerInvariant()}");
+    Console.WriteLine($"причина: {licenseGate.Message}");
+    Console.WriteLine($"вставка: {(licenseGate.AllowsInsert ? "разрешена" : "запрещена")}");
+    Console.WriteLine($"расширение: {(licenseGate.AllowsExtension ? "разрешено" : "запрещено")}");
+    return licenseGate.IsValid || licenseGate.InTrial ? 0 : 1;
+}
+
+if (options.RequireLicense && !licenseGate.IsValid && !licenseGate.InTrial)
+{
+    Console.Error.WriteLine($"требуется действующая лицензия: {licenseGate.Message}");
+    Console.Error.WriteLine($"файл лицензии: {licenseGate.Path}");
+    return 3;
+}
+
+using var agentLog = new AgentLog(AgentLog.DefaultPath, options.Verbose);
+agentLog.Info($"speechpad-agent starting, settings {settingsPath}");
+
+var insertionQueue = new InsertionService(InsertionSchemes.Create(options.InsertScheme));
+new TrayApplication(options, agentLog, insertionQueue, licenseGate).Run();
+insertionQueue.Dispose();
 return 0;
 
 internal sealed record CommandLineOptions
@@ -70,6 +96,12 @@ internal sealed record CommandLineOptions
     public bool InstallAutostart { get; init; }
 
     public bool UninstallAutostart { get; init; }
+
+    public bool LicenseInfo { get; init; }
+
+    public string? LicensePath { get; init; }
+
+    public string? MachineId { get; init; }
 
     public string? SettingsPath { get; init; }
 
@@ -114,6 +146,11 @@ internal sealed record CommandLineOptions
         {
             options.Verbose = true;
         }
+
+        if (LicensePath is not null)
+        {
+            options.LicensePath = LicensePath;
+        }
     }
 }
 
@@ -128,6 +165,7 @@ internal static class CommandLine
           --list-windows            показать видимые окна (нужно для проверки заголовков)
           --install-autostart       включить автозапуск при входе в Windows
           --uninstall-autostart     выключить автозапуск
+          --license-info            показать состояние лицензии и выйти
           --help                    эта справка
 
         Ключи:
@@ -135,6 +173,8 @@ internal static class CommandLine
           --web-root <путь>         папка со собранным вебом (apps/web/dist)
           --scheme clipboard|unicode способ вставки текста
           --settings <путь>         файл настроек (по умолчанию settings.json рядом с exe)
+          --license <путь>          файл лицензии (по умолчанию %APPDATA%\SpeechPad\license.json)
+          --machine-id <идентификатор> подменить id компьютера при проверке лицензии
           --no-tray                 не показывать иконку в трее
           --verbose                 подробный журнал
         """;
@@ -154,6 +194,15 @@ internal static class CommandLine
                     return options with { InstallAutostart = true };
                 case "--uninstall-autostart":
                     return options with { UninstallAutostart = true };
+                case "--license-info":
+                    options = options with { LicenseInfo = true };
+                    break;
+                case "--license" when i + 1 < args.Length:
+                    options = options with { LicensePath = args[++i] };
+                    break;
+                case "--machine-id" when i + 1 < args.Length:
+                    options = options with { MachineId = args[++i] };
+                    break;
                 case "--no-tray":
                     options = options with { NoTray = true };
                     break;

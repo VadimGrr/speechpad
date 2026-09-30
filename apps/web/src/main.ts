@@ -15,6 +15,7 @@ import {
 } from './storage';
 import { countChars, countWords, formatDuration } from './text';
 import { renderAgentStatus } from './ui/agent-status';
+import { renderLicense } from './ui/license';
 import { renderMetrics } from './ui/metrics';
 import { renderControls, renderStatus, type Controls } from './ui/status';
 import { TranscriptView } from './ui/transcript';
@@ -66,6 +67,7 @@ function boot(): void {
   const insertButton = el<HTMLButtonElement>('insert');
   const insertRoute = el<HTMLSelectElement>('insert-route');
   const agentStatus = el<HTMLSpanElement>('agent-status');
+  const licenseEl = document.getElementById('license-status');
 
   const bus = SyncBus.open();
   let compact: Window | null = null;
@@ -170,6 +172,16 @@ function boot(): void {
       if (status === 'error' && detail) showToast(detail);
     });
     agent.onError((message) => showToast(message));
+    agent.onLicense((info) => {
+      renderLicense(licenseEl, info);
+      if (!info.insertAllowed) {
+        settings.insertRoute = 'agent';
+        insertRoute.value = 'agent';
+        insertButton.title = info.message;
+      } else {
+        insertButton.title = 'Вставлять финальные фразы автоматически';
+      }
+    });
     agent.onHotkey((action) => {
       if (action === 'toggle') {
         engine.toggle();

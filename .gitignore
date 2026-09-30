@@ -10,6 +10,13 @@ apps/agent/tests/bin/
 apps/agent/tests/obj/
 apps/web/dist/
 apps/extension/dist/
+tools/speechpad-license/bin/
+tools/speechpad-license/obj/
+
+*.pem
+license.json
+*.trial
+settings.json
 
 .DS_Store
 Thumbs.db

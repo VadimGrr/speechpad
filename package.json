@@ -17,6 +17,7 @@
     "agent": "dotnet run --project apps/agent/Speechpad.Agent.csproj",
     "agent:build": "dotnet build apps/agent/Speechpad.Agent.csproj -c Release",
     "test:agent": "dotnet test apps/agent/tests/Speechpad.Agent.Tests.csproj",
+    "license": "dotnet run --project tools/speechpad-license/Speechpad.LicenseTool.csproj --",
     "example:embed": "node examples/embed/server.mjs"
   },
   "devDependencies": {

@@ -14,6 +14,7 @@ public sealed class AgentConnection
     private readonly AgentOptions options;
     private readonly AgentLog log;
     private readonly IAgentActions actions;
+    private readonly Licensing.LicenseGate license;
     private readonly Channel<string> outgoing = Channel.CreateUnbounded<string>();
     private readonly CancellationTokenSource lifetime = new();
 
@@ -22,13 +23,15 @@ public sealed class AgentConnection
         IInsertionQueue insertion,
         AgentOptions options,
         AgentLog log,
-        IAgentActions actions)
+        IAgentActions actions,
+        Licensing.LicenseGate license)
     {
         this.socket = socket;
         this.insertion = insertion;
         this.options = options;
         this.log = log;
         this.actions = actions;
+        this.license = license;
     }
 
     public void Push(string json) => outgoing.Writer.TryWrite(json);
@@ -109,17 +112,23 @@ public sealed class AgentConnection
         if (ClientMessages.IsHello(json, out var version))
         {
             log.Info($"client connected, protocol {version}");
-            Push(Protocol.Write(new ReadyMessage
-            {
-                InsertScheme = insertion.SchemeName,
-                ProcessId = Environment.ProcessId,
-                Port = options.Port,
-            }));
+            Push(Protocol.Write(Ready()));
             return;
         }
 
         if (ClientMessages.IsInsert(json, out var text, out var seq))
         {
+            if (!license.AllowsInsert)
+            {
+                log.Warn($"insert #{seq} rejected: {license.Message}");
+                Push(Protocol.Write(new InsertedMessage { Ok = false, Scheme = insertion.SchemeName }));
+                Push(Protocol.Write(new ErrorMessage
+                {
+                    Message = "Вставка в другие приложения доступна по лицензии. " + license.Message,
+                }));
+                return;
+            }
+
             var result = await insertion.InsertAsync(text, cancellationToken).ConfigureAwait(false);
             log.Debug($"insert #{seq}: {result.Ok} ({result.Scheme}) {text.Length} chars");
             Push(Protocol.Write(new InsertedMessage { Ok = result.Ok, Scheme = result.Scheme }));
@@ -141,9 +150,23 @@ public sealed class AgentConnection
         Push(Protocol.Write(new ErrorMessage { Message = "неизвестное сообщение" }));
     }
 
-    private void HandleCommand(string command)
+    private ReadyMessage Ready()
     {
-        switch (command)
+        license.Refresh();
+        return new ReadyMessage
+        {
+            InsertScheme = insertion.SchemeName,
+            ProcessId = Environment.ProcessId,
+            Port = options.Port,
+            LicenseState = license.State.ToString().ToLowerInvariant(),
+            LicenseMessage = license.Message,
+            InsertAllowed = license.AllowsInsert,
+            ExtensionAllowed = license.AllowsExtension,
+        };
+    }
+
+    private void HandleCommand(string command)
+    {        switch (command)
         {
             case "toggle":
                 actions.BroadcastHotkey(HotkeyActions.Toggle);
@@ -155,12 +178,7 @@ public sealed class AgentConnection
                 HandleTopmost();
                 break;
             case "ping":
-                Push(Protocol.Write(new ReadyMessage
-                {
-                    InsertScheme = insertion.SchemeName,
-                    ProcessId = Environment.ProcessId,
-                    Port = options.Port,
-                }));
+                Push(Protocol.Write(Ready()));
                 break;
             default:
                 Push(Protocol.Write(new ErrorMessage { Message = $"неизвестная команда «{command}»" }));

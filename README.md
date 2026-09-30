@@ -26,6 +26,7 @@
 Нативный агент: [docs/AGENT.md](docs/AGENT.md).
 Расширение Chrome: [docs/EXTENSION.md](docs/EXTENSION.md).
 Синхронизация окон: [docs/CHANNEL.md](docs/CHANNEL.md).
+Лицензирование и выпуск ключей: [docs/LICENSING.md](docs/LICENSING.md).
 Результаты ручных проверок: [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md).
 
 ## Требования

@@ -32,6 +32,9 @@ dotnet run --project apps/agent/Speechpad.Agent.csproj
 | `--verbose` | подробный журнал |
 | `--list-windows` | показать видимые окна: так ищут заголовки для `--web-root`-настроек |
 | `--install-autostart` / `--uninstall-autostart` | автозапуск при входе в Windows (HKCU Run) |
+| `--license-info` | показать состояние лицензии и выйти, код `0` — можно работать |
+| `--license <путь>` | файл лицензии, по умолчанию `%APPDATA%\SpeechPad\license.json` |
+| `--machine-id <id>` | подменить идентификатор компьютера при проверке лицензии |
 | `--help` | справка |
 
 ## HTTP
@@ -40,7 +43,7 @@ dotnet run --project apps/agent/Speechpad.Agent.csproj
 
 | Запрос | Ответ |
 | --- | --- |
-| `GET /health` | `{ status, version, sessions, insertScheme, processId, port }` |
+| `GET /health` | `{ status, version, sessions, insertScheme, processId, port, licenseState, licenseMessage, insertAllowed, extensionAllowed }` |
 | `GET /token` | `{ token, port, insertScheme, version }`; проверяется `Origin` |
 | `GET /ws?token=…` | WebSocket; без токена `401`, без заголовка Upgrade `400` |
 | `GET /*.html` | страница с вставленным `<script>window.__SPEECHPAD_AGENT__=…</script>` перед `</head>` |
@@ -113,9 +116,17 @@ dotnet run --project apps/agent/Speechpad.Agent.csproj
   "mainWindowTitle": "Speechpad — голосовой ввод",
   "compactWindowTitle": "Speechpad — компактное окно",
   "trayIcon": true,
-  "verbose": false
+  "verbose": false,
+  "licensePath": null,
+  "requireLicense": false,
+  "trialDays": 2
 }
 ```
+
+`licensePath` — файл лицензии, по умолчанию `%APPDATA%\SpeechPad\license.json`.
+`requireLicense` — не запускаться без лицензии (пробный период отключается).
+`trialDays` — пробный период в днях, когда лицензии нет. Подробности в
+[licensing.md](licensing.md).
 
 Битый файл не ломает запуск: агент берёт значения по умолчанию и пишет в журнал.
 Горячие клавиши понимают `Ctrl`, `Alt`, `Shift`, `Win`, буквы, цифры, `F1`…`F24`
@@ -125,7 +136,7 @@ dotnet run --project apps/agent/Speechpad.Agent.csproj
 ## Трей
 
 Меню трея: открыть главное окно, компактное окно поверх, автозапуск вкл/выкл,
-открыть журнал, выход. Журнал — `%LOCALAPPDATA%\Speechpad\agent.log`.
+лицензия, открыть журнал, выход. Журнал — `%LOCALAPPDATA%\Speechpad\agent.log`.
 
 ## Тесты
 
@@ -134,8 +145,9 @@ dotnet test apps/agent/tests/Speechpad.Agent.Tests.csproj
 npm run test:agent
 ```
 
-81 тест: разбор и печать горячих клавиш, настройки, протокол, планы ввода
-(буфер и юникод, сурогаты, `Enter`), очередь вставки, поиск веб-корня, и живые
-HTTP + WebSocket проверки на случайном порту: `Origin`-фильтр, инъекция токена в
-`/`, `/index.html` и `/float.html`, отказ по токену, обход каталога и полный
-цикл `hello` → `insert` → `inserted` → `ping`.
+122 теста: разбор и печать горячих клавиш, настройки, протокол, планы ввода
+(буфер и юникод, сурогаты, `Enter`), очередь вставки, поиск веб-корня, лицензия
+(подпись, срок, привязка к компьютеру, подделка, пробный период, запрет вставки
+без лицензии) и живые HTTP + WebSocket проверки на случайном порту:
+`Origin`-фильтр, инъекция токена в `/`, `/index.html` и `/float.html`, отказ по
+токену, обход каталога и полный цикл `hello` → `insert` → `inserted` → `ping`.

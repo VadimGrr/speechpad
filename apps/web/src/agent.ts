@@ -32,6 +32,10 @@ export interface AgentServerMessage {
   port?: number;
   processId?: number;
   version?: number;
+  licenseState?: string;
+  licenseMessage?: string;
+  insertAllowed?: boolean;
+  extensionAllowed?: boolean;
 }
 
 export interface AgentClientOptions {
@@ -48,6 +52,13 @@ export interface AgentClientOptions {
 export interface InsertOutcome {
   ok: boolean;
   scheme: string;
+}
+
+export interface AgentLicense {
+  state: string;
+  message: string;
+  insertAllowed: boolean;
+  extensionAllowed: boolean;
 }
 
 export function isAgentHandshake(value: unknown): value is AgentHandshake {
@@ -85,6 +96,7 @@ export class AgentClient {
   private readonly statusListeners = new Set<(status: AgentStatus, detail?: string) => void>();
   private readonly hotkeyListeners = new Set<(action: HotkeyAction) => void>();
   private readonly errorListeners = new Set<(message: string) => void>();
+  private readonly licenseListeners = new Set<(info: AgentLicense) => void>();
   private readonly pending = new Map<number, (outcome: InsertOutcome) => void>();
   private socket: AgentSocket | null = null;
   private reconnectTimer: number | null = null;
@@ -92,6 +104,12 @@ export class AgentClient {
   private seq = 0;
   private closedByUser = false;
   private currentStatus: AgentStatus = 'offline';
+  private currentLicense: AgentLicense = {
+    state: 'unknown',
+    message: '',
+    insertAllowed: true,
+    extensionAllowed: true,
+  };
 
   constructor(options: AgentClientOptions) {
     this.handshake = options.handshake;
@@ -115,6 +133,17 @@ export class AgentClient {
 
   get port(): number {
     return this.handshake.port;
+  }
+
+  get license(): AgentLicense {
+    return this.currentLicense;
+  }
+
+  onLicense(listener: (info: AgentLicense) => void): () => void {
+    this.licenseListeners.add(listener);
+    return () => {
+      this.licenseListeners.delete(listener);
+    };
   }
 
   onStatus(listener: (status: AgentStatus, detail?: string) => void): () => void {
@@ -208,6 +237,7 @@ export class AgentClient {
 
     if (parsed.type === 'ready') {
       this.attempts = 0;
+      this.setLicense(parsed);
       this.setStatus('online');
       return;
     }
@@ -226,6 +256,26 @@ export class AgentClient {
     this.resolvePending(false, this.insertScheme);
     const message = parsed.message ?? 'агент вернул ошибку';
     for (const listener of [...this.errorListeners]) listener(message);
+  }
+
+  private setLicense(message: AgentServerMessage): void {
+    if (message.licenseState === undefined) return;
+    const next: AgentLicense = {
+      state: message.licenseState,
+      message: message.licenseMessage ?? '',
+      insertAllowed: message.insertAllowed !== false,
+      extensionAllowed: message.extensionAllowed !== false,
+    };
+    if (
+      next.state === this.currentLicense.state &&
+      next.message === this.currentLicense.message &&
+      next.insertAllowed === this.currentLicense.insertAllowed &&
+      next.extensionAllowed === this.currentLicense.extensionAllowed
+    ) {
+      return;
+    }
+    this.currentLicense = next;
+    for (const listener of [...this.licenseListeners]) listener(next);
   }
 
   private send(payload: Record<string, unknown>): void {

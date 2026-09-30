@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AGENT_STATUS_LABELS, renderAgentStatus, SCHEME_LABELS } from '../src/ui/agent-status';
+import { renderLicense } from '../src/ui/license';
 import { buildRows, renderMetrics } from '../src/ui/metrics';
 import { renderControls, renderStatus, TOGGLE_LABELS } from '../src/ui/status';
 import { environmentMessage, inspectEnvironment } from '../src/env';
@@ -135,5 +136,48 @@ describe('agent status chip', () => {
     renderAgentStatus(root, 'online', 'unicode');
     expect(root.textContent).toBe('Агент в сети · юникод-ввод');
     expect(SCHEME_LABELS['clipboard']).toBe('буфер обмена');
+  });
+});
+
+describe('license chip', () => {
+  const info = {
+    state: 'valid',
+    message: 'действует до 2030-01-01',
+    insertAllowed: true,
+    extensionAllowed: true,
+  };
+
+  it('hides the chip when the license is valid', () => {
+    const root = document.createElement('span');
+    root.hidden = false;
+    renderLicense(root, info);
+    expect(root.hidden).toBe(true);
+    expect(root.dataset['state']).toBe('valid');
+  });
+
+  it('explains that insertion is not paid for', () => {
+    const root = document.createElement('span');
+    renderLicense(root, { ...info, state: 'missing', message: 'лицензия не найдена', insertAllowed: false });
+    expect(root.hidden).toBe(false);
+    expect(root.textContent).toBe('Лицензия не найдена');
+    expect(root.dataset['insertAllowed']).toBe('false');
+    expect(root.title).toBe('лицензия не найдена');
+  });
+
+  it('shows the trial countdown', () => {
+    const root = document.createElement('span');
+    renderLicense(root, { ...info, state: 'trial', message: 'пробный период: осталось 2 дн. из 2' });
+    expect(root.textContent).toBe('пробный период: осталось 2 дн. из 2');
+  });
+
+  it('names an expired license and keeps the reason in the title', () => {
+    const root = document.createElement('span');
+    renderLicense(root, { ...info, state: 'expired', message: 'срок лицензии истёк 2026-01-01' });
+    expect(root.textContent).toBe('Срок лицензии истёк');
+    expect(root.title).toBe('срок лицензии истёк 2026-01-01');
+  });
+
+  it('tolerates a missing element', () => {
+    expect(() => renderLicense(null, info)).not.toThrow();
   });
 });

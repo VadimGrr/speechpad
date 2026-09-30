@@ -42,6 +42,14 @@ public sealed record ReadyMessage : AgentMessage
     public int ProcessId { get; init; }
 
     public required int Port { get; init; }
+
+    public string? LicenseState { get; init; }
+
+    public string? LicenseMessage { get; init; }
+
+    public bool InsertAllowed { get; init; }
+
+    public bool ExtensionAllowed { get; init; }
 }
 
 public sealed record InsertedMessage : AgentMessage
@@ -91,4 +99,12 @@ public sealed record HealthResponse
     public int ProcessId { get; init; }
 
     public required int Port { get; init; }
+
+    public string? LicenseState { get; init; }
+
+    public string? LicenseMessage { get; init; }
+
+    public bool InsertAllowed { get; init; }
+
+    public bool ExtensionAllowed { get; init; }
 }

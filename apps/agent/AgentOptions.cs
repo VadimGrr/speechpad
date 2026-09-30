@@ -31,6 +31,12 @@ public sealed class AgentOptions
 
     public bool Verbose { get; set; }
 
+    public string? LicensePath { get; set; }
+
+    public bool RequireLicense { get; set; }
+
+    public int TrialDays { get; set; } = 2;
+
     public IReadOnlyList<string> Validate()
     {
         var problems = new List<string>();

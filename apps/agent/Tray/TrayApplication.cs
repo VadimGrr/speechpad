@@ -11,21 +11,23 @@ public sealed class TrayApplication : ApplicationContext, IAgentActions
     private readonly AgentOptions options;
     private readonly AgentLog log;
     private readonly IInsertionQueue insertion;
+    private readonly Licensing.LicenseGate license;
     private readonly HotkeyHost host = new();
     private readonly List<string> hotkeyFailures = new();
     private AgentServer? server;
     private NotifyIcon? tray;
 
-    public TrayApplication(AgentOptions options, AgentLog log, IInsertionQueue insertion)
+    public TrayApplication(AgentOptions options, AgentLog log, IInsertionQueue insertion, Licensing.LicenseGate license)
     {
         this.options = options;
         this.log = log;
         this.insertion = insertion;
+        this.license = license;
     }
 
     public void Run()
     {
-        server = new AgentServer(options, log, insertion, this);
+        server = new AgentServer(options, log, insertion, this, license);
         server.Start();
 
         host.Pressed += OnHotkey;
@@ -146,6 +148,27 @@ public sealed class TrayApplication : ApplicationContext, IAgentActions
         ShowBalloon("Speechpad", $"Окно «{title}» не найдено. Проверьте заголовок в settings.json.");
     }
 
+    private void ShowLicense()
+    {
+        license.Refresh();
+        log.Info($"license {license.State.ToString().ToLowerInvariant()}: {license.Message}");
+        var state = license.IsValid
+            ? $"Лицензия: {license.Message}."
+            : $"{license.Message}. Файл лицензии: {license.Path}";
+        ShowBalloon("Speechpad", state);
+    }
+
+    private string LicenseLabel()
+    {
+        if (license.IsValid)
+        {
+            return "Лицензия: " + license.Message;
+        }
+
+        var suffix = license.InTrial ? " (пробный период)" : string.Empty;
+        return $"Лицензия: {license.Message}{suffix}";
+    }
+
     private void ShowTray()
     {
         var menu = new ContextMenuStrip();
@@ -156,6 +179,7 @@ public sealed class TrayApplication : ApplicationContext, IAgentActions
             AutoStart.IsEnabled() ? "Выключить автозапуск" : "Включить автозапуск",
             null,
             (_, _) => ToggleAutostart());
+        menu.Items.Add(LicenseLabel(), null, (_, _) => ShowLicense());
         menu.Items.Add("Журнал", null, (_, _) => OpenLog());
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Выход", null, (_, _) => Quit());

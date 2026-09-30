@@ -20,18 +20,25 @@ public sealed class AgentServer : IAsyncDisposable
     private readonly AgentLog log;
     private readonly IInsertionQueue insertion;
     private readonly IAgentActions actions;
+    private readonly Licensing.LicenseGate license;
     private readonly string token;
     private readonly string webRoot;
     private readonly ConcurrentDictionary<Guid, AgentConnection> sessions = new();
     private WebApplication? app;
     private Task? runTask;
 
-    public AgentServer(AgentOptions options, AgentLog log, IInsertionQueue insertion, IAgentActions actions)
+    public AgentServer(
+        AgentOptions options,
+        AgentLog log,
+        IInsertionQueue insertion,
+        IAgentActions actions,
+        Licensing.LicenseGate license)
     {
         this.options = options;
         this.log = log;
         this.insertion = insertion;
         this.actions = actions;
+        this.license = license;
         token = Convert.ToHexString(RandomNumberGenerator.GetBytes(24));
         webRoot = ResolveWebRoot(options.WebRoot);
     }
@@ -183,6 +190,10 @@ public sealed class AgentServer : IAsyncDisposable
             InsertScheme = insertion.SchemeName,
             ProcessId = Environment.ProcessId,
             Port = options.Port,
+            LicenseState = license.State.ToString().ToLowerInvariant(),
+            LicenseMessage = license.Message,
+            InsertAllowed = license.AllowsInsert,
+            ExtensionAllowed = license.AllowsExtension,
         }));
 
         web.MapGet("/token", (HttpContext context) =>
@@ -217,7 +228,7 @@ public sealed class AgentServer : IAsyncDisposable
 
             using var socket = await context.WebSockets.AcceptWebSocketAsync().ConfigureAwait(false);
             var id = Guid.NewGuid();
-            var connection = new AgentConnection(socket, insertion, options, log, actions);
+            var connection = new AgentConnection(socket, insertion, options, log, actions, license);
             sessions[id] = connection;
             try
             {
