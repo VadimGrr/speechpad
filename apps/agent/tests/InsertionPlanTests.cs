@@ -8,6 +8,17 @@ namespace Speechpad.Agent.Tests;
 public class InsertionPlanTests
 {
     [Fact]
+    public void VirtualKeyPressIsExactlyOneDownAndOneUp()
+    {
+        var plan = InputBuilder.VirtualKey(0x20, keyUp: false);
+        Assert.Equal(2, plan.Length);
+        Assert.Equal((ushort)0x20, plan[0].Data.Keyboard.VirtualKey);
+        Assert.Equal(0u, plan[0].Data.Keyboard.Flags);
+        Assert.Equal((ushort)0x20, plan[1].Data.Keyboard.VirtualKey);
+        Assert.Equal(NativeMethods.KeyEventKeyUp, plan[1].Data.Keyboard.Flags);
+    }
+
+    [Fact]
     public void ClipboardPlanHoldsControlWhileVIsPressed()
     {
         var plan = ClipboardPasteScheme.Plan();
@@ -80,6 +91,57 @@ public class InsertionPlanTests
         Assert.Equal(2, plan.Length);
         Assert.Equal((ushort)0xD83D, plan[0][0].Data.Keyboard.ScanCode);
         Assert.Equal((ushort)0xDE00, plan[1][0].Data.Keyboard.ScanCode);
+    }
+
+    [Fact]
+    public void SplitAffixesSeparatesSpacesFromTheCore()
+    {
+        var (leading, core, trailing) = ClipboardPasteScheme.SplitAffixes(" second ");
+        Assert.Equal(1, leading);
+        Assert.Equal("second", core);
+        Assert.Equal(1, trailing);
+    }
+
+    [Fact]
+    public void SplitAffixesHandlesTextWithoutAffixes()
+    {
+        var (leading, core, trailing) = ClipboardPasteScheme.SplitAffixes("word");
+        Assert.Equal(0, leading);
+        Assert.Equal("word", core);
+        Assert.Equal(0, trailing);
+    }
+
+    [Fact]
+    public void SplitAffixesHandlesWhitespaceOnlyPayload()
+    {
+        var (leading, core, trailing) = ClipboardPasteScheme.SplitAffixes("   ");
+        Assert.Equal(3, leading);
+        Assert.Equal(string.Empty, core);
+        Assert.Equal(0, trailing);
+    }
+
+    [Fact]
+    public void SplitAffixesKeepsInnerSpaces()
+    {
+        var (_, core, _) = ClipboardPasteScheme.SplitAffixes(" два слова ");
+        Assert.Equal("два слова", core);
+    }
+
+    [Fact]
+    public void SpacePlanIsARealKeyPressNotAUnicodeCharacter()
+    {
+        var plan = UnicodeInputScheme.PlanSpaces(1).ToArray();
+        Assert.Single(plan);
+        Assert.Equal((ushort)0x20, plan[0][0].Data.Keyboard.VirtualKey);
+        Assert.Equal(0u, plan[0][0].Data.Keyboard.Flags);
+        Assert.Equal((ushort)0x20, plan[0][1].Data.Keyboard.VirtualKey);
+        Assert.Equal(NativeMethods.KeyEventKeyUp, plan[0][1].Data.Keyboard.Flags);
+    }
+
+    [Fact]
+    public void SpacePlanEmitsOnePressPerSpace()
+    {
+        Assert.Equal(2, UnicodeInputScheme.PlanSpaces(2).Count());
     }
 
     [Fact]

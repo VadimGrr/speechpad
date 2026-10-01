@@ -294,7 +294,7 @@ public sealed class AgentServer : IAsyncDisposable
 
     private async Task<bool> TryServeHtmlAsync(HttpContext context)
     {
-        if (!HttpMethods.IsGet(context.Request.Method) || context.Request.QueryString.HasValue)
+        if (!HttpMethods.IsGet(context.Request.Method))
         {
             return false;
         }

@@ -16,6 +16,7 @@ import {
 import { countChars, countWords, formatDuration } from './text';
 import { renderAgentStatus } from './ui/agent-status';
 import { renderLicense } from './ui/license';
+import { InsertJoin } from './ui/insert-join';
 import { renderMetrics } from './ui/metrics';
 import { renderControls, renderStatus, type Controls } from './ui/status';
 import { TranscriptView } from './ui/transcript';
@@ -84,6 +85,8 @@ function boot(): void {
     compactButton.disabled = true;
     compactButton.title = 'Браузер не поддерживает BroadcastChannel';
   }
+
+  const insertJoin = new InsertJoin();
 
   const view = new TranscriptView(
     transcriptRoot,
@@ -326,8 +329,10 @@ function boot(): void {
   engine.on('metrics', queueMetrics);
 
   async function insertFragment(text: string): Promise<void> {
+    const payload = insertJoin.join(text);
+    if (!payload) return;
     if (settings.insertRoute === 'tab' && extensionReady) {
-      const outcome = await extension.insert(text);
+      const outcome = await extension.insert(payload);
       if (!outcome.ok) showToast(outcome.message ?? 'Расширение не вставило текст в поле вкладки');
       return;
     }
@@ -335,7 +340,7 @@ function boot(): void {
       showToast('Автовставка недоступна: запустите нативного агента');
       return;
     }
-    const outcome = await agent.insert(text);
+    const outcome = await agent.insert(payload);
     if (!outcome.ok) showToast('Агент не вставил текст в активное окно');
   }
 

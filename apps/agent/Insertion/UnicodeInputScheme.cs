@@ -6,6 +6,7 @@ public sealed class UnicodeInputScheme : IInsertionScheme
 {
     private const ushort VkReturn = 0x0D;
     private const ushort VkTab = 0x09;
+    private const ushort VkSpace = 0x20;
     private const int BatchChars = 24;
     private const int BatchPauseMs = 8;
 
@@ -17,7 +18,23 @@ public sealed class UnicodeInputScheme : IInsertionScheme
         var batch = new List<NativeMethods.Input>();
         var inBatch = 0;
 
-        foreach (var inputs in Plan(text))
+        var (leading, core, trailing) = ClipboardPasteScheme.SplitAffixes(text);
+        if (core.Length == 0)
+        {
+            foreach (var inputs in PlanSpaces(leading + trailing))
+            {
+                InputBuilder.Send(inputs);
+            }
+
+            return;
+        }
+
+        foreach (var inputs in PlanSpaces(leading))
+        {
+            InputBuilder.Send(inputs);
+        }
+
+        foreach (var inputs in Plan(core))
         {
             cancellationToken.ThrowIfCancellationRequested();
             batch.AddRange(inputs);
@@ -32,6 +49,19 @@ public sealed class UnicodeInputScheme : IInsertionScheme
         }
 
         InputBuilder.Send(batch);
+
+        foreach (var inputs in PlanSpaces(trailing))
+        {
+            InputBuilder.Send(inputs);
+        }
+    }
+
+    internal static IEnumerable<NativeMethods.Input[]> PlanSpaces(int count)
+    {
+        for (var i = 0; i < count; i++)
+        {
+            yield return [InputBuilder.KeyDown(VkSpace), InputBuilder.KeyUp(VkSpace)];
+        }
     }
 
     internal static IEnumerable<NativeMethods.Input[]> Plan(string text)

@@ -6,9 +6,11 @@ public sealed class ClipboardPasteScheme : IInsertionScheme
 {
     private const ushort VkControl = 0x11;
     private const ushort VkV = 0x56;
+    private const ushort VkSpace = 0x20;
 
-    internal const int ClipboardSettleMs = 60;
-    internal const int PasteSettleMs = 120;
+    internal const int ClipboardSettleMs = 80;
+    internal const int PasteSettleMs = 350;
+    internal const int SpaceSettleMs = 40;
 
     public string Name => "clipboard";
 
@@ -20,12 +22,55 @@ public sealed class ClipboardPasteScheme : IInsertionScheme
             return;
         }
 
+        var (leading, core, trailing) = SplitAffixes(text);
+        if (core.Length == 0)
+        {
+            TypeSpaces(leading + trailing);
+            return;
+        }
+
+        if (leading > 0)
+        {
+            TypeSpaces(leading);
+        }
+
         var previous = ReadClipboard();
-        SetClipboard(text);
+        SetClipboard(core);
         Thread.Sleep(ClipboardSettleMs);
         InputBuilder.Send(Plan());
         Thread.Sleep(PasteSettleMs);
-        RestoreClipboard(previous, text);
+        RestoreClipboard(previous, core);
+
+        if (trailing > 0)
+        {
+            TypeSpaces(trailing);
+        }
+    }
+
+    internal static (int Leading, string Core, int Trailing) SplitAffixes(string text)
+    {
+        var start = 0;
+        var end = text.Length;
+        while (start < end && char.IsWhiteSpace(text[start]))
+        {
+            start++;
+        }
+
+        while (end > start && char.IsWhiteSpace(text[end - 1]))
+        {
+            end--;
+        }
+
+        return (start, text[start..end], text.Length - end);
+    }
+
+    private static void TypeSpaces(int count)
+    {
+        for (var i = 0; i < count; i++)
+        {
+            InputBuilder.Send(InputBuilder.VirtualKey(VkSpace, keyUp: false));
+            Thread.Sleep(SpaceSettleMs);
+        }
     }
 
     internal static NativeMethods.Input[] Plan() =>
