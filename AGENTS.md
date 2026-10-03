@@ -95,6 +95,9 @@ C:\Users\vadim\Documents\speechpad-secrets\issued-licenses.json
 ## Правила кода
 
 - Комментарии в код не добавляй без прямой просьбы.
+- Файлы `.ps1` сохраняй в UTF-8 **с BOM**. Windows PowerShell 5.1 читает их как ANSI и
+  ломает кириллицу: скрипт падает с `Unexpected token`. `release.ps1` и
+  `setup-new-pc.ps1` уже с BOM, держись того же.
 - C#: `TreatWarningsAsErrors`, `Nullable enable`. nullable-предупреждения — тоже ошибки.
 - Тексты пользователю и в логи — по-русски.
 - Имена методов и тестов — английские, без пробелов и спецсимволов: имя теста
