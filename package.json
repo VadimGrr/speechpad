@@ -22,6 +22,7 @@
     "portal:init": "dotnet run --project tools/speechpad-license-portal/Speechpad.LicensePortal.csproj -- --init",
     "portal:test": "dotnet test tools/speechpad-license-portal/tests/Speechpad.LicensePortal.Tests.csproj",
     "release": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release.ps1",
+    "setup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-new-pc.ps1",
     "example:embed": "node examples/embed/server.mjs"
   },
   "devDependencies": {

@@ -32,8 +32,12 @@ scripts/release.ps1    сборка релиза для покупателя
 
 ## Команды
 
+Перенос на другой компьютер: `docs/TRANSFER.md`, развёртывание одной командой
+`npm run setup`.
+
 ```powershell
 npm install                # один раз, ставит все workspaces
+npm run setup              # проверить .NET/Node, поставить зависимости, прогнать тесты
 npm run build              # собрать все JS/TS части
 npm run typecheck          # tsc --noEmit по всем workspace
 npm run test               # тесты web и расширения (vitest)
