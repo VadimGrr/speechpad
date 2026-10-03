@@ -18,6 +18,10 @@
     "agent:build": "dotnet build apps/agent/Speechpad.Agent.csproj -c Release",
     "test:agent": "dotnet test apps/agent/tests/Speechpad.Agent.Tests.csproj",
     "license": "dotnet run --project tools/speechpad-license/Speechpad.LicenseTool.csproj --",
+    "portal": "dotnet run --project tools/speechpad-license-portal/Speechpad.LicensePortal.csproj",
+    "portal:init": "dotnet run --project tools/speechpad-license-portal/Speechpad.LicensePortal.csproj -- --init",
+    "portal:test": "dotnet test tools/speechpad-license-portal/tests/Speechpad.LicensePortal.Tests.csproj",
+    "release": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release.ps1",
     "example:embed": "node examples/embed/server.mjs"
   },
   "devDependencies": {

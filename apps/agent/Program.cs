@@ -2,6 +2,7 @@ using System.Globalization;
 using Speechpad.Agent;
 using Speechpad.Agent.Insertion;
 using Speechpad.Agent.Licensing;
+using Speechpad.Agent.Licensing.Install;
 using Speechpad.Agent.Startup;
 using Speechpad.Agent.Tray;
 using Speechpad.Agent.Windows;
@@ -54,8 +55,20 @@ if (problems.Count > 0)
     return 2;
 }
 
+var licensePath = cli.LicensePath ?? options.LicensePath ?? LicenseLocations.DefaultPath;
+
+if (cli.InstallLicense is { } licenseToInstall)
+{
+    var installer = new LicenseInstaller(
+        licensePath,
+        KeyPair.PublicKeyPem,
+        machineId: () => cli.MachineId ?? MachineId.Detect());
+    var outcome = installer.Install(licenseToInstall);
+    return LicenseInstallerDialog.Show(outcome).Installed ? 0 : 1;
+}
+
 var licenseGate = new LicenseGate(
-    cli.LicensePath ?? options.LicensePath ?? LicenseLocations.DefaultPath,
+    licensePath,
     KeyPair.PublicKeyPem,
     log: null,
     machineId: cli.MachineId,
@@ -98,6 +111,8 @@ internal sealed record CommandLineOptions
     public bool UninstallAutostart { get; init; }
 
     public bool LicenseInfo { get; init; }
+
+    public string? InstallLicense { get; init; }
 
     public string? LicensePath { get; init; }
 
@@ -166,6 +181,7 @@ internal static class CommandLine
           --install-autostart       включить автозапуск при входе в Windows
           --uninstall-autostart     выключить автозапуск
           --license-info            показать состояние лицензии и выйти
+          --install-license <путь>  установить лицензию из файла .lic и выйти
           --help                    эта справка
 
         Ключи:
@@ -196,6 +212,9 @@ internal static class CommandLine
                     return options with { UninstallAutostart = true };
                 case "--license-info":
                     options = options with { LicenseInfo = true };
+                    break;
+                case "--install-license" when i + 1 < args.Length:
+                    options = options with { InstallLicense = args[++i] };
                     break;
                 case "--license" when i + 1 < args.Length:
                     options = options with { LicensePath = args[++i] };

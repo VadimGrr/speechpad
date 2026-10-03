@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Вход — выдача лицензий Speechpad</title>
+<link rel="stylesheet" href="/static/portal.css">
+</head>
+<body class="login-page">
+  <main class="login-card">
+    <h1>Выдача лицензий</h1>
+    <p class="hint">Служебный портал Speechpad. Локальный доступ.</p>
+    <form id="login-form" autocomplete="off">
+      <label for="login">Логин</label>
+      <input id="login" name="login" value="admin" autocomplete="username" spellcheck="false" required>
+
+      <label for="password">Пароль</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+      <button type="submit">Войти</button>
+      <p id="error" class="error" role="alert" hidden></p>
+    </form>
+  </main>
+<script type="module" src="/static/login.js"></script>
+</body>
+</html>

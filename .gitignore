@@ -12,9 +12,15 @@ apps/web/dist/
 apps/extension/dist/
 tools/speechpad-license/bin/
 tools/speechpad-license/obj/
+tools/speechpad-license-portal/bin/
+tools/speechpad-license-portal/obj/
+tools/speechpad-license-portal/tests/bin/
+tools/speechpad-license-portal/tests/obj/
+release/
 
 *.pem
 license.json
+*.lic
 *.trial
 settings.json
 

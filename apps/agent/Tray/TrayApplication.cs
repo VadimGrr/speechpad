@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using Speechpad.Agent.Hotkeys;
 using Speechpad.Agent.Insertion;
+using Speechpad.Agent.Licensing;
+using Speechpad.Agent.Licensing.Install;
 using Speechpad.Agent.Startup;
 using Speechpad.Agent.Windows;
 
@@ -39,6 +41,8 @@ public sealed class TrayApplication : ApplicationContext, IAgentActions
         {
             ShowTray();
         }
+
+        RegisterLicenseAssociation();
 
         log.Info($"agent ready: toggle {options.ToggleHotkey}, topmost {options.TopmostHotkey}, clear {options.ClearHotkey}");
         foreach (var failure in hotkeyFailures)
@@ -180,6 +184,8 @@ public sealed class TrayApplication : ApplicationContext, IAgentActions
             null,
             (_, _) => ToggleAutostart());
         menu.Items.Add(LicenseLabel(), null, (_, _) => ShowLicense());
+        menu.Items.Add("Установить лицензию…", null, (_, _) => InstallLicenseFromDialog());
+        menu.Items.Add("Идентификатор компьютера", null, (_, _) => ShowMachineId());
         menu.Items.Add("Журнал", null, (_, _) => OpenLog());
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Выход", null, (_, _) => Quit());
@@ -206,6 +212,61 @@ public sealed class TrayApplication : ApplicationContext, IAgentActions
             AutoStart.Enable();
             ShowBalloon("Speechpad", "Автозапуск включён");
         }
+    }
+
+    private void RegisterLicenseAssociation()
+    {
+        var executable = Environment.ProcessPath;
+        if (string.IsNullOrWhiteSpace(executable))
+        {
+            return;
+        }
+
+        try
+        {
+            LicenseFileAssociation.Enable(executable);
+            log.Info("license association registered: .lic opens in agent");
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException
+            or System.Security.SecurityException
+            or IOException
+            or InvalidOperationException)
+        {
+            log.Warn($"не удалось связать файлы .lic с программой: {ex.Message}");
+        }
+    }
+
+    private void InstallLicenseFromDialog()
+    {
+        using var dialog = new OpenFileDialog
+        {
+            Title = "Выберите файл лицензии",
+            Filter = "Лицензия Speechpad (*.lic;*.json)|*.lic;*.json|Все файлы (*.*)|*.*",
+            CheckFileExists = true,
+        };
+
+        if (dialog.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        var installer = new LicenseInstaller(
+            license.Path,
+            KeyPair.PublicKeyPem,
+            machineId: () => license.MachineId,
+            log: message => log.Info(message));
+
+        LicenseInstallerDialog.Show(installer.Install(dialog.FileName));
+        license.Refresh();
+    }
+
+    private void ShowMachineId()
+    {
+        MessageBox.Show(
+            license.MachineId ?? "идентификатор определить не удалось",
+            "Speechpad — идентификатор компьютера",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information);
     }
 
     private void OpenLog()

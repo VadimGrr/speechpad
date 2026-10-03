@@ -1,0 +1,171 @@
+:root {
+  color-scheme: dark;
+  --bg: #14161a;
+  --panel: #1d2026;
+  --line: #2c3038;
+  --text: #e7e9ee;
+  --muted: #9aa1ad;
+  --accent: #4f8cff;
+  --danger: #ff6b6b;
+  --ok: #46c98b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 "Segoe UI", system-ui, sans-serif;
+}
+
+h1 { font-size: 18px; margin: 0; }
+h2 { font-size: 16px; margin: 0 0 14px; }
+h3 { font-size: 15px; margin: 0 0 8px; }
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--line);
+  background: #191c21;
+}
+
+.bar-right { display: flex; align-items: center; gap: 12px; }
+
+.key, .mono {
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.wrap {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.login-page {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+}
+
+.login-card {
+  width: 340px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 28px;
+}
+
+.login-card h1 { margin-bottom: 4px; }
+.login-card form { display: grid; gap: 8px; margin-top: 20px; }
+
+label { font-size: 13px; color: var(--muted); }
+.muted { color: var(--muted); font-weight: 400; }
+
+input[type="text"], input[type="password"], input[type="number"],
+input[type="date"], input:not([type]) {
+  width: 100%;
+  padding: 9px 11px;
+  background: #12141a;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: var(--text);
+  font: inherit;
+}
+
+input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+button {
+  padding: 9px 16px;
+  border-radius: 7px;
+  border: 1px solid var(--line);
+  background: #262a32;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) { background: #2f343d; }
+button:disabled { opacity: 0.55; cursor: default; }
+
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.primary:hover:not(:disabled) { background: #3f7bec; }
+
+button.ghost { background: transparent; }
+button.small { padding: 4px 10px; font-size: 12px; }
+
+.row { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; }
+.field { display: grid; gap: 6px; }
+
+fieldset.term {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px 14px;
+  margin: 16px 0 0;
+}
+
+fieldset.term legend { font-size: 12px; color: var(--muted); padding: 0 6px; }
+fieldset.term input[type="number"], fieldset.term input[type="date"] { margin-top: 10px; max-width: 220px; }
+
+.radio, .check { display: flex; align-items: center; gap: 8px; color: var(--text); font-size: 14px; margin: 6px 0; }
+.radio input, .check input { accent-color: var(--accent); }
+
+.actions { display: flex; align-items: center; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+
+.hint { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+code { font-family: "Cascadia Mono", Consolas, monospace; background: #12141a; padding: 1px 5px; border-radius: 4px; }
+
+.error { color: var(--danger); font-size: 13px; margin: 0; }
+
+.result {
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid #2f4a3a;
+  background: #16211b;
+  border-radius: 8px;
+}
+
+.result-summary { color: var(--ok); font-size: 14px; margin: 0; }
+
+.json {
+  margin: 12px 0 0;
+  padding: 12px;
+  background: #0f1115;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 12px;
+  max-height: 220px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.history { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+.history th { text-align: left; color: var(--muted); font-weight: 500; padding: 8px; border-bottom: 1px solid var(--line); }
+.history td { padding: 9px 8px; border-bottom: 1px solid #23262d; vertical-align: top; }
+.history tr.revoked td { color: var(--muted); text-decoration: line-through; }
+.history tr.revoked .badge { text-decoration: none; }
+
+.badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  background: #3a2323;
+  color: var(--danger);
+}

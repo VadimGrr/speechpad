@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Выдача лицензий Speechpad</title>
+<link rel="stylesheet" href="/static/portal.css">
+</head>
+<body>
+<header class="bar">
+  <h1>Выдача лицензий</h1>
+  <div class="bar-right">
+    <span id="key" class="key" title="Отпечаток публичного ключа"></span>
+    <button id="logout" type="button" class="ghost">Выйти</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="panel">
+    <h2>Новая лицензия</h2>
+    <form id="issue-form" autocomplete="off">
+      <div class="row">
+        <div class="field">
+          <label for="licensee">Получатель</label>
+          <input id="licensee" name="licensee" placeholder="Иван Петров" required maxlength="120">
+        </div>
+        <div class="field">
+          <label for="note">Заметка <span class="muted">необязательно</span></label>
+          <input id="note" name="note" placeholder="оплата 12.10" maxlength="500">
+        </div>
+      </div>
+
+      <fieldset class="term">
+        <legend>Срок</legend>
+        <label class="radio"><input type="radio" name="term" value="perpetual" checked> бессрочно</label>
+        <label class="radio"><input type="radio" name="term" value="days"> на N дней</label>
+        <label class="radio"><input type="radio" name="term" value="date"> до даты</label>
+        <input id="days" name="days" type="number" min="1" max="36500" value="365" hidden>
+        <input id="expires" name="expires" type="date" hidden>
+      </fieldset>
+
+      <fieldset class="term">
+        <legend>Привязка к компьютеру</legend>
+        <label class="radio"><input type="radio" name="binding" value="any" checked> любой компьютер</label>
+        <label class="radio"><input type="radio" name="binding" value="machine"> один компьютер</label>
+        <input id="machine" name="machine" placeholder="machine id покупателя" spellcheck="false" hidden>
+        <p class="hint">Покупатель видит свой идентификатор в меню трея: «Идентификатор компьютера».</p>
+      </fieldset>
+
+      <fieldset class="term">
+        <legend>Возможности</legend>
+        <label class="check"><input type="checkbox" name="features" value="insert" checked> вставка в другие приложения</label>
+        <label class="check"><input type="checkbox" name="features" value="extension" checked> расширение для браузера</label>
+        <label class="check"><input type="checkbox" name="features" value="topmost" checked> поверх всех окон</label>
+      </fieldset>
+
+      <div class="actions">
+        <button type="submit" class="primary">Выдать лицензию</button>
+        <span id="issue-error" class="error" role="alert" hidden></span>
+      </div>
+    </form>
+
+    <div id="result" class="result" hidden>
+      <h3>Лицензия выпущена</h3>
+      <p id="result-summary" class="result-summary"></p>
+      <p class="hint">Покупателю достаточно сохранить <code>Speechpad-Фамилия.lic</code> и открыть его двойным щелчком. Программа сама сохранит лицензию и продолжит работу.</p>
+      <div class="actions">
+        <button id="copy" type="button" class="primary">Скопировать</button>
+        <button id="download" type="button" class="ghost">Сохранить файл</button>
+        <span id="copy-state" class="hint"></span>
+      </div>
+      <pre id="license-json" class="json" spellcheck="false"></pre>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>История</h2>
+    <p class="hint">
+      Отзыв помечает запись в вашем журнале. Он <strong>не запрещает</strong> уже выданный файл:
+      лицензия проверяется подписью офлайн и не обращается к серверу.
+    </p>
+    <table class="history">
+      <thead>
+        <tr><th>Кому</th><th>Выдана</th><th>Срок</th><th>Компьютер</th><th>Возможности</th><th></th></tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <p id="empty" class="hint" hidden>Пока не выдано ни одной лицензии.</p>
+  </section>
+</main>
+
+<script type="module" src="/static/portal.js"></script>
+</body>
+</html>
